@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getGitHubProfile } from '@/lib/github';
+import { getGitHubProfile, getRepoData } from '@/lib/github';
 import { generateMatchAnalysis } from '@/lib/ai';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
@@ -8,15 +8,26 @@ import { authOptions } from "@/lib/auth";
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    const { username, resumeText, statement } = await request.json();
+    const { username, resumeText, statement, githubUrl } = await request.json();
 
-    if (!username) {
-      return NextResponse.json({ error: 'Username is required' }, { status: 400 });
+    if (!username && !githubUrl) {
+      return NextResponse.json({ error: 'Username or githubUrl is required' }, { status: 400 });
     }
 
     // @ts-ignore
     const token = session?.accessToken;
-    const githubData = await getGitHubProfile(username, token);
+    let githubData;
+
+    if (githubUrl) {
+      // NEW: get data from a public repo url.
+      // We will need to implement this function in @/lib/github.ts
+      githubData = await getRepoData(githubUrl, token);
+    } else if (username) {
+      githubData = await getGitHubProfile(username, token);
+    } else {
+      return NextResponse.json({ error: 'Username or githubUrl is required' }, { status: 400 });
+    }
+
     const companiesRaw = await prisma.company.findMany();
     
     // Heuristic Filter

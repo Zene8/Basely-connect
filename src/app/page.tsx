@@ -30,9 +30,19 @@ export default function Home() {
     reader.readAsText(file);
   };
 
+  const [githubUrl, setGithubUrl] = useState('');
+
+  const handlePublicMatch = (url: string) => {
+    setGithubUrl(url);
+    runAnalysis(url);
+  };
+
   const handleMatch = async () => {
     if (!session?.user?.name) return;
-    
+    runAnalysis();
+  };
+
+  const runAnalysis = async (publicUrl?: string) => {
     setIsLoading(true);
     setMatches([]);
     setActiveStep(1);
@@ -46,9 +56,10 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: session.user.name, 
+          username: session?.user?.name,
           statement,
-          resumeText
+          resumeText,
+          githubUrl: publicUrl || githubUrl,
         })
       });
       
@@ -88,7 +99,6 @@ export default function Home() {
   // 2. Main Page
   return (
     <main className="min-h-screen pt-16">
-      <Navbar />
       
       <div className="container mx-auto px-6">
         
@@ -110,15 +120,25 @@ export default function Home() {
           </p>
 
           {!session ? (
-            <button 
-              onClick={() => signIn('github')}
-              className="group relative px-10 py-4 bg-cyan-500 hover:bg-cyan-400 text-[#09090b] font-bold rounded-xl transition-all shadow-[0_0_30px_rgba(34,211,238,0.3)] hover:shadow-[0_0_50px_rgba(34,211,238,0.5)] flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:scale-95"
-            >
-              <span>Initiate Sequence</span>
-              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="relative max-w-lg mx-auto">
+              <input
+                type="text"
+                placeholder="Enter your GitHub repo link to get started"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    // @ts-ignore
+                    handlePublicMatch(e.target.value);
+                  }
+                }}
+                className="w-full px-6 py-4 bg-[#18181b] border border-[#27272a] rounded-xl text-white placeholder:text-[#52525b] focus:outline-none focus:border-cyan-500/50 transition-all shadow-[0_0_30px_rgba(0,0,0,0.3)]"
+              />
+              <svg 
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#52525b]"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-            </button>
+            </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-8 text-left animate-slideUp">
               {/* Input Card */}
@@ -201,21 +221,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* STATS FOOTER */}
-          <div className="mt-20 pt-10 border-t border-[#27272a] grid grid-cols-3 gap-8 text-center animate-slideUp">
-            <div>
-              <div className="text-3xl font-bold text-white mb-1">12,402</div>
-              <div className="text-[10px] font-mono text-[#71717a] uppercase tracking-widest">Active_Profiles</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-white mb-1">500+</div>
-              <div className="text-[10px] font-mono text-[#71717a] uppercase tracking-widest">Partner_Nodes</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-white mb-1">98.4%</div>
-              <div className="text-[10px] font-mono text-[#71717a] uppercase tracking-widest">Match_Accuracy</div>
-            </div>
-          </div>
         </section>
 
         {/* RESULTS GRID */}
@@ -287,7 +292,7 @@ export default function Home() {
 
       <footer className="py-20 border-t border-[#27272a]/50 text-center">
         <p className="text-[10px] font-mono text-[#52525b] uppercase tracking-[0.4em]">
-          &copy; 2026 Basely_Connect // Autonomous_Career_Intelligence
+          &copy; 2026 // Autonomous_Career_Intelligence
         </p>
       </footer>
     </main>
