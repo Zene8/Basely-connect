@@ -1,0 +1,242 @@
+.results {
+  padding: 40px 48px 120px;
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 5;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 48px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.highlight {
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+}
+
+.resetButton {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.resetButton:hover {
+  border-color: var(--text-dim);
+  color: var(--text-primary);
+}
+
+/* Analysis Summary */
+.analysisSummary {
+  background: linear-gradient(135deg, #18181b 0%, #0f0f11 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 48px;
+}
+
+.summaryTitle {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+
+.summaryGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.summaryCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+}
+
+.summaryIcon {
+  font-size: 20px;
+  color: var(--accent-cyan);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 211, 238, 0.1);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.summaryContent {
+  flex: 1;
+}
+
+.summaryLabel {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.summaryTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.summaryTag {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.summaryStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.statItem {
+  background: var(--bg-tertiary);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.statValue {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+/* Matches Section */
+.matchesSection {
+  margin-bottom: 48px;
+}
+
+.matchesTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--text-secondary);
+}
+
+.companyGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ctaSection {
+  margin-top: 48px;
+}
+
+.ctaCard {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 20px;
+  padding: 48px;
+  text-align: center;
+}
+
+.ctaTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.ctaText {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.ctaButton {
+  background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
+  border: none;
+  color: var(--bg-primary);
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+
+.ctaButton:hover {
+  transform: translateY(-2px);
+}
+
+.buttonArrow {
+  font-size: 18px;
+  transition: transform 0.2s;
+}
+
+.ctaButton:hover .buttonArrow {
+  transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .results {
+    padding: 24px 24px 80px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .summaryStats {
+    grid-template-columns: 1fr;
+  }
+  
+  .ctaCard {
+    padding: 32px 24px;
+  }
+}

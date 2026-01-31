@@ -1,0 +1,32 @@
+.section {
+  padding: 120px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 5;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 64px;
+  letter-spacing: -1px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 80px 24px;
+  }
+  
+  .title {
+    font-size: 28px;
+    margin-bottom: 40px;
+  }
+}
