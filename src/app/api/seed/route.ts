@@ -8,53 +8,60 @@ export async function GET() {
         name: 'TechFlow Solutions',
         industry: 'Fintech',
         description: 'A leading fintech company modernizing payment gateways.',
-        requiredSkills: JSON.stringify(['React', 'Node.js', 'AWS', 'PostgreSQL']),
-        preferredLangs: JSON.stringify(['TypeScript', 'JavaScript', 'SQL']),
-        minExperience: 3,
-        culture: 'Fast-paced, innovative, remote-first'
+        skills: JSON.stringify(['React', 'Node.js', 'AWS', 'PostgreSQL']),
+        languages: JSON.stringify(['TypeScript', 'JavaScript', 'SQL']),
+        frameworks: JSON.stringify(['Next.js', 'Express']),
+        experience: '3+ years',
+        contributions: 'Open source contributions to fintech libraries appreciated.'
       },
       {
         name: 'CreativePixels',
         industry: 'Digital Agency',
         description: 'Award-winning creative agency building immersive web experiences.',
-        requiredSkills: JSON.stringify(['Vue.js', 'CSS', 'Animation', 'Three.js']),
-        preferredLangs: JSON.stringify(['JavaScript', 'GLSL']),
-        minExperience: 1,
-        culture: 'Artistic, collaborative, design-focused'
+        skills: JSON.stringify(['Vue.js', 'CSS', 'Animation', 'Three.js']),
+        languages: JSON.stringify(['JavaScript', 'GLSL']),
+        frameworks: JSON.stringify(['Nuxt.js', 'TailwindCSS']),
+        experience: '1+ years',
+        contributions: 'Portfolio required.'
       },
       {
         name: 'DataMinds AI',
         industry: 'Artificial Intelligence',
         description: 'Building the next generation of predictive models.',
-        requiredSkills: JSON.stringify(['PyTorch', 'TensorFlow', 'Data Pipelines', 'Docker']),
-        preferredLangs: JSON.stringify(['Python', 'C++']),
-        minExperience: 4,
-        culture: 'Research-oriented, academic, rigorous'
+        skills: JSON.stringify(['PyTorch', 'TensorFlow', 'Data Pipelines', 'Docker']),
+        languages: JSON.stringify(['Python', 'C++']),
+        frameworks: JSON.stringify(['FastAPI', 'Keras']),
+        experience: '4+ years',
+        contributions: 'Research papers or Kaggle competitions.'
       },
       {
         name: 'SolidSystems',
         industry: 'Enterprise Software',
         description: 'Reliable backend systems for global logistics.',
-        requiredSkills: JSON.stringify(['Spring Boot', 'Microservices', 'Kafka']),
-        preferredLangs: JSON.stringify(['Java', 'Kotlin']),
-        minExperience: 5,
-        culture: 'Structured, stable, clear career ladder'
+        skills: JSON.stringify(['Spring Boot', 'Microservices', 'Kafka']),
+        languages: JSON.stringify(['Java', 'Kotlin']),
+        frameworks: JSON.stringify(['Spring Cloud', 'Hibernate']),
+        experience: '5+ years',
+        contributions: 'Evidence of handling high-scale systems.'
       },
       {
         name: 'CloudScale',
         industry: 'Cloud Infrastructure',
         description: 'Infrastructure as code and developer tooling.',
-        requiredSkills: JSON.stringify(['Kubernetes', 'Terraform', 'CI/CD']),
-        preferredLangs: JSON.stringify(['Go', 'Rust', 'Bash']),
-        minExperience: 3,
-        culture: 'Engineering-led, open-source friendly'
+        skills: JSON.stringify(['Kubernetes', 'Terraform', 'CI/CD']),
+        languages: JSON.stringify(['Go', 'Rust', 'Bash']),
+        frameworks: JSON.stringify(['Gin', 'Actix']),
+        experience: '3+ years',
+        contributions: 'contributions to CNCF projects.'
       }
     ]
 
     let count = 0
     for (const company of companies) {
+      // @ts-ignore
       const exists = await prisma.company.findFirst({ where: { name: company.name } })
       if (!exists) {
+        // @ts-ignore
         await prisma.company.create({ data: company })
         count++
       }
