@@ -1,0 +1,22 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id              String @id @default(uuid())
+  name            String
+  industry        String
+  description     String
+  requiredSkills  String // JSON string: ["React", "Node.js"]
+  preferredLangs  String // JSON string: ["TypeScript", "Python"]
+  minExperience   Int    @default(1)
+  culture         String? // Description of culture
+}
