@@ -14,6 +14,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [matches, setMatches] = useState<CompanyMatch[]>([]);
   const [fileName, setFileName] = useState('');
+  const [activeStep, setActiveStep] = useState(0);
 
   // Handle File Read
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,8 +35,13 @@ export default function Home() {
     
     setIsLoading(true);
     setMatches([]);
+    setActiveStep(1);
 
     try {
+      // Step 1: Scanning (Animation)
+      await new Promise(r => setTimeout(r, 1000));
+      setActiveStep(2);
+
       const res = await fetch('/api/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -47,270 +53,243 @@ export default function Home() {
       });
       
       const data = await res.json();
+      
+      // Step 2: Analysis (Animation)
+      await new Promise(r => setTimeout(r, 1000));
+      setActiveStep(3);
+
       if (Array.isArray(data)) {
         setMatches(data);
       }
+      
+      // Step 3: Complete
+      await new Promise(r => setTimeout(r, 800));
+      
     } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
+      setActiveStep(0);
     }
   };
 
   // 1. Loading State
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-basely-dark flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6">
-          <div className="relative">
-            <div className="w-12 h-12 border-2 border-basely-navy rounded-full"></div>
-            <div className="absolute top-0 left-0 w-12 h-12 border-2 border-t-basely-orange border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-          </div>
-          <span className="font-mono text-basely-orange text-sm animate-pulse tracking-widest">INITIALIZING_SYSTEM...</span>
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="font-mono text-cyan-400 text-xs uppercase tracking-[0.3em] animate-pulse">Initializing_System</span>
         </div>
       </div>
     );
   }
 
-  // 2. Unauthenticated State (Hero)
-  if (!session) {
-    return (
-      <main className="min-h-screen bg-basely-dark relative overflow-hidden">
-        <Navbar />
-        
-        {/* Cyberpunk Grid Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1A2332_1px,transparent_1px),linear-gradient(to_bottom,#1A2332_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20 pointer-events-none" />
-
-        {/* Hero Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-basely-orange/10 blur-[120px] rounded-full pointer-events-none" />
-
-        <div className="container mx-auto px-6 pt-40 pb-20 flex flex-col items-center text-center z-10 relative">
-          
-          {/* Status Badge */}
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded border border-basely-orange/20 bg-basely-navy/50 backdrop-blur-md mb-8">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-basely-orange opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-basely-orange"></span>
-            </span>
-            <span className="font-mono text-xs text-basely-orange tracking-widest uppercase">System Online</span>
-          </div>
-          
-          {/* Headline */}
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight">
-            Find Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-basely-orange to-orange-400 text-glow">Perfect Fit</span>
-          </h1>
-          
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mb-12 font-light leading-relaxed">
-            Advanced algorithmic career matching. Connect your GitHub repository data with semantic AI analysis to discover precise opportunities.
-          </p>
-          
-          {/* CTA */}
-          <button 
-            onClick={() => signIn('github')}
-            className="group relative px-8 py-4 bg-basely-orange hover:bg-orange-500 text-white font-bold rounded transform transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,107,53,0.4)]"
-          >
-            <div className="flex items-center gap-3">
-              <span className="uppercase tracking-widest text-sm">Initiate Sequence</span>
-              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </div>
-          </button>
-
-          {/* Stats Grid */}
-          <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
-            {[
-              { label: 'Active Nodes', value: '12,402' },
-              { label: 'Partner Systems', value: '500+' },
-              { label: 'Match Accuracy', value: '98.4%' }
-            ].map((stat, i) => (
-              <div key={i} className="p-6 border border-basely-navy bg-basely-dark/50 backdrop-blur-sm rounded relative group overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-basely-orange/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="font-mono text-3xl font-bold text-white mb-2">{stat.value}</div>
-                <div className="font-mono text-xs text-basely-orange uppercase tracking-widest">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  // 3. Authenticated Dashboard
+  // 2. Main Page
   return (
-    <main className="min-h-screen bg-basely-dark pb-20 selection:bg-basely-orange/30 selection:text-white">
+    <main className="min-h-screen pt-16">
       <Navbar />
       
-      <div className="container mx-auto px-6 pt-32">
-        <div className="max-w-4xl mx-auto">
-          {/* Welcome Header */}
-          <div className="mb-12 flex items-end justify-between border-b border-basely-navy pb-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">
-                Operator <span className="text-basely-orange">{session.user?.name}</span>
-              </h2>
-              <p className="font-mono text-xs text-gray-500 uppercase tracking-widest">
-                Session ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}
-              </p>
-            </div>
-            <div className="hidden md:block">
-              <div className="flex items-center gap-2 text-xs font-mono text-basely-orange">
-                <span className="w-2 h-2 bg-basely-orange rounded-full animate-pulse"></span>
-                AWAITING INPUT
-              </div>
-            </div>
+      <div className="container mx-auto px-6">
+        
+        {/* HERO SECTION */}
+        <section className="pt-20 pb-32 text-center max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[11px] font-bold uppercase tracking-widest mb-8 animate-slideUp">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            AI-Powered Matching Protocol
           </div>
+          
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight leading-[1.1] animate-slideUp">
+            Find companies that
+            <br />
+            <span className="title-gradient">want your skills.</span>
+          </h1>
+          
+          <p className="text-[#a1a1aa] text-lg md:text-xl max-w-2xl mx-auto mb-16 leading-relaxed font-light animate-slideUp">
+            The next generation of engineering recruitment. Connect your GitHub data and professional profiles to find your perfect semantic match.
+          </p>
 
-          {/* Input Interface */}
-          <div className="relative group bg-basely-navy/30 border border-basely-orange/15 rounded-lg p-1 overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-basely-orange/50 to-transparent opacity-50"></div>
-            
-            <div className="bg-basely-dark rounded p-8 relative z-10">
-              <div className="space-y-8">
-                {/* Resume Upload */}
-                <div className="space-y-3">
-                  <label className="flex items-center justify-between text-xs font-mono text-basely-orange uppercase tracking-widest">
-                    <span>Source Data [Resume]</span>
-                    <span className="text-gray-600">.TXT, .MD SUPPORTED</span>
-                  </label>
-                  
-                  <div className="relative group/upload">
-                    <input 
-                      type="file" 
-                      onChange={handleFileChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                    <div className={`w-full h-32 border border-dashed rounded flex flex-col items-center justify-center gap-3 transition-all duration-300 ${fileName ? 'border-basely-orange bg-basely-orange/5' : 'border-gray-700 bg-basely-navy/20 group-hover/upload:border-basely-orange/50 group-hover/upload:bg-basely-navy/40'}`}>
-                      <div className={`p-2 rounded ${fileName ? 'text-basely-orange' : 'text-gray-500 group-hover/upload:text-basely-orange transition-colors'}`}>
-                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                      </div>
-                      <div className="text-center font-mono text-sm">
-                        <span className={fileName ? 'text-white' : 'text-gray-400'}>
-                          {fileName || "UPLOAD_FILE"}
-                        </span>
+          {!session ? (
+            <button 
+              onClick={() => signIn('github')}
+              className="group relative px-10 py-4 bg-cyan-500 hover:bg-cyan-400 text-[#09090b] font-bold rounded-xl transition-all shadow-[0_0_30px_rgba(34,211,238,0.3)] hover:shadow-[0_0_50px_rgba(34,211,238,0.5)] flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:scale-95"
+            >
+              <span>Initiate Sequence</span>
+              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </button>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-8 text-left animate-slideUp">
+              {/* Input Card */}
+              <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-8 relative overflow-hidden group hover:border-cyan-500/30 transition-all">
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+                <h3 className="text-white font-bold mb-6 flex items-center gap-2">
+                  <span className="text-cyan-400 font-mono text-sm">01</span>
+                  Input Parameters
+                </h3>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-mono text-[#71717a] uppercase tracking-widest mb-2">Resume / CV (Text)</label>
+                    <div className="relative group/upload">
+                      <input type="file" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                      <div className={`p-4 border-2 border-dashed rounded-xl flex items-center gap-3 transition-all ${fileName ? 'border-cyan-500/50 bg-cyan-500/5' : 'border-[#27272a] bg-[#09090b] group-hover/upload:border-[#52525b]'}`}>
+                        <span className="text-xl text-[#52525b] group-hover/upload:text-cyan-400">📄</span>
+                        <span className="text-xs text-[#a1a1aa] truncate">{fileName || "Click to select source file"}</span>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Personal Statement */}
-                <div className="space-y-3">
-                  <label className="text-xs font-mono text-basely-orange uppercase tracking-widest block">
-                    Parameters [Statement]
-                  </label>
-                  <div className="relative">
-                    <textarea
+                  <div>
+                    <label className="block text-[10px] font-mono text-[#71717a] uppercase tracking-widest mb-2">Personal Statement</label>
+                    <textarea 
                       value={statement}
                       onChange={(e) => setStatement(e.target.value)}
-                      className="w-full h-40 bg-basely-navy/20 border border-gray-700 rounded p-4 text-gray-300 font-mono text-sm placeholder-gray-700 focus:outline-none focus:border-basely-orange focus:bg-basely-navy/30 transition-all resize-none"
-                      placeholder="// Enter career objectives and cultural preferences..."
+                      placeholder="Your career goals and values..."
+                      className="w-full h-28 bg-[#09090b] border border-[#27272a] rounded-xl p-4 text-sm text-[#fafafa] focus:outline-none focus:border-cyan-500/50 transition-all resize-none font-light"
                     />
-                    <div className="absolute bottom-2 right-2 text-[10px] font-mono text-gray-600">
-                      CHARS: {statement.length}
+                  </div>
+
+                  <button 
+                    onClick={handleMatch}
+                    disabled={isLoading}
+                    className="w-full py-4 bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-[#09090b] font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isLoading ? "PROCESSSING..." : "Run Matching Engine"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Status / Log Card */}
+              <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-8 relative overflow-hidden font-mono">
+                <h3 className="text-white font-bold mb-6 flex items-center gap-2">
+                  <span className="text-cyan-400 text-sm">02</span>
+                  System Status
+                </h3>
+                
+                <div className="space-y-4 text-xs">
+                  <div className="flex items-center justify-between py-2 border-b border-[#27272a]">
+                    <span className="text-[#71717a]">Connection</span>
+                    <span className="text-green-400 font-bold tracking-widest">ENCRYPTED</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-[#27272a]">
+                    <span className="text-[#71717a]">Operator</span>
+                    <span className="text-[#fafafa]">{session.user?.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-[#27272a]">
+                    <span className="text-[#71717a]">Core Model</span>
+                    <span className="text-cyan-400">GPT-4o-Mini</span>
+                  </div>
+                  
+                  <div className="pt-4 space-y-3">
+                    <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 1 ? 'opacity-100' : 'opacity-30'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 1 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-[#52525b]'}`} />
+                      <span className="text-[#a1a1aa]">Scanning repository architecture...</span>
+                    </div>
+                    <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 2 ? 'opacity-100' : 'opacity-30'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 2 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-[#52525b]'}`} />
+                      <span className="text-[#a1a1aa]">Extracting semantic skill vectors...</span>
+                    </div>
+                    <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 3 ? 'opacity-100' : 'opacity-30'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 3 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-[#52525b]'}`} />
+                      <span className="text-[#a1a1aa]">Cross-referencing database nodes...</span>
                     </div>
                   </div>
                 </div>
-
-                {/* Action Button */}
-                <button
-                  onClick={handleMatch}
-                  disabled={isLoading}
-                  className="w-full py-4 bg-basely-orange hover:bg-orange-500 disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold text-sm tracking-widest uppercase rounded shadow-[0_0_15px_rgba(255,107,53,0.3)] hover:shadow-[0_0_25px_rgba(255,107,53,0.5)] transition-all active:scale-[0.99]"
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center gap-3 animate-pulse">
-                      Processing Data...
-                    </span>
-                  ) : (
-                    'Run Matching Algorithm'
-                  )}
-                </button>
               </div>
             </div>
+          )}
+
+          {/* STATS FOOTER */}
+          <div className="mt-20 pt-10 border-t border-[#27272a] grid grid-cols-3 gap-8 text-center animate-slideUp">
+            <div>
+              <div className="text-3xl font-bold text-white mb-1">12,402</div>
+              <div className="text-[10px] font-mono text-[#71717a] uppercase tracking-widest">Active_Profiles</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-white mb-1">500+</div>
+              <div className="text-[10px] font-mono text-[#71717a] uppercase tracking-widest">Partner_Nodes</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-white mb-1">98.4%</div>
+              <div className="text-[10px] font-mono text-[#71717a] uppercase tracking-widest">Match_Accuracy</div>
+            </div>
           </div>
+        </section>
 
-          {/* Results Section */}
-          {matches.length > 0 && (
-            <div className="mt-16 space-y-8 animate-slideUp">
-              <div className="flex items-center gap-4">
-                <div className="h-[1px] flex-grow bg-gradient-to-r from-basely-orange/50 to-transparent"></div>
-                <h3 className="font-mono text-sm text-basely-orange uppercase tracking-widest">
-                  Analysis Complete: {matches.length} Candidates
-                </h3>
+        {/* RESULTS GRID */}
+        {matches.length > 0 && (
+          <section id="results" className="pb-32 max-w-5xl mx-auto scroll-mt-24">
+            <div className="flex items-end justify-between mb-12 border-b border-[#27272a] pb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">Analysis Results</h2>
+                <p className="text-[#71717a] text-sm">Top matches based on semantic profile overlap</p>
               </div>
-              
-              <div className="grid gap-6">
-                {matches.map((company) => (
-                  <div 
-                    key={company.id}
-                    className="group relative bg-basely-navy/20 border border-basely-orange/10 hover:border-basely-orange/40 rounded-lg p-6 transition-all hover:bg-basely-navy/40"
-                  >
-                    {/* Decorative Corner */}
-                    <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
-                       <div className="absolute top-0 right-0 w-2 h-2 bg-basely-orange/20 group-hover:bg-basely-orange transition-colors"></div>
+              <div className="text-[#71717a] font-mono text-xs uppercase tracking-widest">
+                Nodes Found: {matches.length}
+              </div>
+            </div>
+
+            <div className="grid gap-6">
+              {matches.map((company, index) => (
+                <div key={company.id} className="group bg-[#18181b] border border-[#27272a] hover:border-cyan-500/40 rounded-2xl overflow-hidden transition-all duration-300 animate-slideUp" style={{ animationDelay: `${index * 100}ms` }}>
+                  <div className="flex flex-col md:flex-row">
+                    {/* Score Bar */}
+                    <div className="md:w-2 bg-[#27272a] group-hover:bg-cyan-500/20 transition-colors relative">
+                      <div className="absolute top-0 left-0 w-full bg-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-1000" style={{ height: `${company.matchScore}%` }} />
                     </div>
-
-                    <div className="flex flex-col md:flex-row gap-8">
-                      {/* Score Visualization */}
-                      <div className="flex-shrink-0 flex flex-col items-center justify-center min-w-[100px]">
-                        <div className="relative w-20 h-20 flex items-center justify-center">
-                          <svg className="absolute inset-0 w-full h-full -rotate-90">
-                            <circle cx="40" cy="40" r="36" stroke="#1A2332" strokeWidth="4" fill="none" />
-                            <circle 
-                              cx="40" cy="40" r="36" 
-                              stroke={company.matchScore >= 80 ? '#FF6B35' : '#CC552A'} 
-                              strokeWidth="4" fill="none"
-                              strokeDasharray={`${(company.matchScore / 100) * 226} 226`} 
-                              className="transition-all duration-1000 ease-out"
-                            />
-                          </svg>
-                          <span className="text-xl font-bold font-mono text-white">
-                            {company.matchScore}
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-mono text-gray-500 mt-2 uppercase">Compatibility</span>
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-grow">
-                        <div className="flex items-start justify-between mb-2">
+                    
+                    <div className="flex-1 p-8">
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
+                        <div className="flex items-center gap-5">
+                          <div className="w-14 h-14 rounded-xl bg-[#27272a] flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform">
+                            {company.logo}
+                          </div>
                           <div>
-                            <h4 className="text-2xl font-bold text-white group-hover:text-basely-orange transition-colors">
-                              {company.name}
-                            </h4>
-                            <div className="flex items-center gap-4 mt-1">
-                              <span className="text-xs font-mono text-gray-400 uppercase bg-basely-navy px-2 py-0.5 rounded">
+                            <h4 className="text-2xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-1">{company.name}</h4>
+                            <div className="flex items-center gap-3">
+                              <span className="text-[10px] font-mono text-cyan-400/80 uppercase tracking-widest bg-cyan-500/5 px-2 py-0.5 rounded border border-cyan-500/10">
                                 {company.industry}
                               </span>
+                              <span className="text-[10px] font-mono text-[#71717a] uppercase tracking-widest">Tier_1_Match</span>
                             </div>
                           </div>
                         </div>
                         
-                        <p className="text-gray-300 text-sm mb-6 leading-relaxed font-light">
-                          {company.matchReason}
-                        </p>
-
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-mono text-basely-orange uppercase tracking-widest">Matched Protocols</span>
-                          <div className="flex flex-wrap gap-2">
-                            {company.matchedLanguages?.map((skill: string) => (
-                              <span key={skill} className="px-3 py-1 rounded border border-basely-orange/20 text-white text-xs font-mono bg-basely-orange/5">
-                                {skill}
-                              </span>
-                            ))}
+                        <div className="text-right">
+                          <div className="text-4xl font-black text-white leading-none mb-1 group-hover:text-glow transition-all">
+                            {company.matchScore}%
                           </div>
+                          <span className="text-[10px] font-mono text-[#71717a] uppercase tracking-widest font-bold">Compatibility_Index</span>
                         </div>
+                      </div>
+
+                      <p className="text-[#a1a1aa] text-sm leading-relaxed mb-8 font-light italic border-l-2 border-[#27272a] pl-6 py-1 group-hover:border-cyan-500/30 transition-all">
+                        "{company.matchReason}"
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        {company.matchedLanguages?.map((skill: string) => (
+                          <span key={skill} className="px-3 py-1 rounded-md bg-[#27272a] text-[#fafafa] text-[10px] font-mono uppercase tracking-wider border border-transparent hover:border-cyan-500/30 transition-all">
+                            {skill}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
+          </section>
+        )}
       </div>
+
+      <footer className="py-20 border-t border-[#27272a]/50 text-center">
+        <p className="text-[10px] font-mono text-[#52525b] uppercase tracking-[0.4em]">
+          &copy; 2026 Basely_Connect // Autonomous_Career_Intelligence
+        </p>
+      </footer>
     </main>
   );
 }

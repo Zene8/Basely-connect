@@ -6,14 +6,14 @@ export function parseCompanyCSV(csvContent: string): Promise<Partial<Company>[]>
     Papa.parse(csvContent, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
-        const companies = results.data.map((row: any, index) => ({
-          id: index + 100, // Offset IDs to avoid collision with static data
+      complete: (results: any) => {
+        const companies = results.data.map((row: any, index: number) => ({
+          id: index + 100, 
           name: row['Company Name'] || row['name'] || 'Unknown Company',
           description: row['Description'] || row['description'] || '',
           industry: row['Industry'] || row['industry'] || 'Technology',
-          logo: '🏢', // Default logo
-          color: '#888888', // Default color
+          logo: '🏢', 
+          color: '#888888', 
           attributes: {
             languages: (row['Languages'] || '').split(',').map((s: string) => s.trim()).filter(Boolean),
             frameworks: (row['Frameworks'] || '').split(',').map((s: string) => s.trim()).filter(Boolean),

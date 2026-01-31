@@ -7,7 +7,9 @@ const prismaClientSingleton = () => {
 
   if (url && (url.startsWith('postgres://') || url.startsWith('postgresql://'))) {
     const pool = new Pool({ connectionString: url })
+    // @ts-ignore
     const adapter = new PrismaNeon(pool)
+    // @ts-ignore
     return new PrismaClient({ adapter })
   }
 

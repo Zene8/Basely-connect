@@ -6,8 +6,6 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
   });
 
   try {
-    // If accessToken is provided, we can get the authenticated user's details directly
-    // checking if the requested username matches the token's owner to allow private access
     let user;
     if (accessToken) {
        const { data: authUser } = await octokit.rest.users.getAuthenticated();
@@ -21,14 +19,14 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
        user = publicUser;
     }
 
+    // Fixed type assignment for GitHub API
     const { data: repos } = await octokit.rest.repos.listForUser({
       username,
       sort: "updated",
-      per_page: 100, // Increased fetch limit
-      type: accessToken ? "all" : "public" // fetch private if token exists
+      per_page: 100,
+      type: accessToken ? "all" : "owner" 
     });
 
-    // Calculate detailed stats
     const languagesMap: Record<string, number> = {};
     let totalStars = 0;
     let totalSize = 0;
@@ -53,7 +51,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       totalRepos: repos.length,
       topLanguages,
       totalStars,
-      totalSize, // in KB
+      totalSize,
       repos: repos.slice(0, 10).map(r => ({
         name: r.name,
         description: r.description,
@@ -64,7 +62,6 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
     };
   } catch (error) {
     console.error("GitHub API Error:", error);
-    // Return a basic error structure or throw
     throw new Error("User not found or GitHub API error");
   }
 }
