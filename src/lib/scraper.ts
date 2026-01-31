@@ -1,74 +1,136 @@
-import { load } from 'cheerio'
+import { load, CheerioAPI } from 'cheerio'
+
+export interface SubPageData {
+  url: string
+  title: string
+  content: string
+}
 
 export interface ScrapedCompanyData {
   name: string
   url: string
-  languages: string[]
-  frameworks: string[]
-  skills: string[]
-  qualities: string[]
-  rawText: string
+  description: string
+  mainPageContent: string
+  allContent: string
+  subPages: SubPageData[]
+  totalCharacters: number
+  totalPages: number
   scrapedAt: Date
 }
 
-const LANGUAGES = ['Python', 'JavaScript', 'TypeScript', 'Java', 'C++', 'C#', 'Rust', 'Go', 'Scala', 'Kotlin', 'Ruby', 'SQL', 'R', 'MATLAB', 'Bash', 'Swift', 'PHP']
-const FRAMEWORKS = ['React', 'Next.js', 'Vue', 'Angular', 'Node.js', 'Django', 'Flask', 'Spring', 'PyTorch', 'TensorFlow', 'Pandas', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'Spark', 'Kafka']
-const SKILLS = ['Machine Learning', 'AI', 'Data Science', 'Deep Learning', 'DevOps', 'System Design', 'Distributed Systems', 'Cloud Computing', 'Cybersecurity', 'Quantitative', 'Statistics']
-const QUALITIES = ['teamwork', 'communication', 'leadership', 'ownership', 'problem solving', 'analytical', 'motivated', 'collaborative', 'curious', 'driven']
-
-function extractKeywords(text: string, keywords: string[]): string[] {
-  const found: string[] = []
-  const lowerText = text.toLowerCase()
-  for (const keyword of keywords) {
-    if (lowerText.includes(keyword.toLowerCase()) && !found.includes(keyword)) {
-      found.push(keyword)
-    }
+function extractCompanyName(url: string, $: CheerioAPI): string {
+  const ogName = $('meta[property="og:site_name"]').attr('content')
+  if (ogName && ogName.length > 2 && ogName.length < 50) return ogName.trim()
+  const title = $('title').text()
+  const parts = title.split(/[|\-–—:]/)
+  if (parts.length > 1) {
+    const last = parts[parts.length - 1].trim()
+    if (last.length > 2 && last.length < 40) return last
   }
-  return found
+  try {
+    const domain = new URL(url).hostname.replace('www.', '').split('.')[0]
+    return domain.charAt(0).toUpperCase() + domain.slice(1)
+  } catch { return 'Unknown' }
 }
 
-export async function scrapeCareerPage(url: string): Promise<ScrapedCompanyData | null> {
-  try {
-    console.log(`Scraping: ${url}`)
-    
-    const response = await fetch(url, {
-      headers: { 
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-      },
-      signal: AbortSignal.timeout(10000),
-    })
-    
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    
-    const html = await response.text()
-    const $ = load(html)
-    $('script, style, nav, footer, header, noscript').remove()
-    
-    const pageText = $('body').text().replace(/\s+/g, ' ').trim()
-    const name = $('title').text().split(/[|\-–]/)[0].trim() || 'Unknown Company'
+function cleanText(text: string): string {
+  return text.replace(/[\t]+/g, ' ').replace(/\n{3,}/g, '\n\n').replace(/[ ]{2,}/g, ' ').trim()
+}
 
-    return {
-      name,
-      url,
-      languages: extractKeywords(pageText, LANGUAGES),
-      frameworks: extractKeywords(pageText, FRAMEWORKS),
-      skills: extractKeywords(pageText, SKILLS),
-      qualities: extractKeywords(pageText, QUALITIES),
-      rawText: pageText.slice(0, 5000),
-      scrapedAt: new Date(),
-    }
+function getFullPageText($: CheerioAPI): string {
+  $('script, style, noscript, iframe, svg, img, video, audio, nav, header, footer').remove()
+  $('[class*="cookie"], [class*="consent"], [class*="popup"], [class*="modal"]').remove()
+  return cleanText($('body').text())
+}
+
+function findRelevantLinks($: CheerioAPI, baseUrl: string): string[] {
+  const found: string[] = []
+  const baseHost = new URL(baseUrl).hostname
+  const keywords = ['career', 'job', 'join', 'team', 'work', 'graduate', 'intern', 'culture', 'benefit', 'about', 'people', 'technology', 'engineering']
+  
+  $('a[href]').each((_, el) => {
+    const href = $(el).attr('href')
+    if (!href || href.startsWith('#') || href.startsWith('mailto:')) return
+    try {
+      const fullUrl = new URL(href, baseUrl).href
+      if (new URL(fullUrl).hostname !== baseHost) return
+      if (keywords.some(kw => fullUrl.toLowerCase().includes(kw)) && !found.includes(fullUrl) && fullUrl !== baseUrl) {
+        found.push(fullUrl)
+      }
+    } catch {}
+  })
+  return found.slice(0, 15)
+}
+
+async function fetchPage(url: string): Promise<CheerioAPI | null> {
+  try {
+    console.log(`  📄 Fetching: ${url}`)
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
+      signal: AbortSignal.timeout(20000),
+    })
+    if (!res.ok) return null
+    return load(await res.text())
   } catch (err) {
-    console.error(`Failed to scrape ${url}:`, err)
+    console.error(`  ❌ Failed: ${url}`)
     return null
   }
 }
 
-export async function scrapeMultiplePages(urls: string[]): Promise<ScrapedCompanyData[]> {
+export async function scrapeCareerPage(url: string, deep: boolean = true): Promise<ScrapedCompanyData | null> {
+  console.log(`\n🔍 Scraping: ${url}`)
+  
+  const $main = await fetchPage(url)
+  if (!$main) return null
+
+  const name = extractCompanyName(url, $main)
+  const description = $main('meta[name="description"]').attr('content') || ''
+  const mainPageContent = getFullPageText($main)
+  
+  let allContent = mainPageContent
+  const subPages: SubPageData[] = []
+
+  if (deep) {
+    const subUrls = findRelevantLinks($main, url)
+    console.log(`  📑 Found ${subUrls.length} subpages`)
+
+    for (const subUrl of subUrls) {
+      await new Promise(r => setTimeout(r, 500))
+      const $sub = await fetchPage(subUrl)
+      if ($sub) {
+        const content = getFullPageText($sub)
+        const title = $sub('title').text().split(/[|\-–]/)[0].trim() || 'Page'
+        subPages.push({ url: subUrl, title, content })
+        allContent += `\n\n--- ${title} ---\n\n${content}`
+        console.log(`  ✅ ${title}: ${content.length} chars`)
+      }
+    }
+  }
+
+  const totalCharacters = allContent.length
+  const totalPages = subPages.length + 1
+
+  console.log(`  📊 Total: ${totalCharacters} chars from ${totalPages} pages`)
+
+  return {
+    name,
+    url,
+    description,
+    mainPageContent,
+    allContent,
+    subPages,
+    totalCharacters,
+    totalPages,
+    scrapedAt: new Date(),
+  }
+}
+
+export async function scrapeMultiplePages(urls: string[], deep: boolean = true): Promise<ScrapedCompanyData[]> {
   const results: ScrapedCompanyData[] = []
   for (const url of urls) {
-    const data = await scrapeCareerPage(url)
+    const data = await scrapeCareerPage(url, deep)
     if (data) results.push(data)
-    await new Promise(r => setTimeout(r, 1000))
+    await new Promise(r => setTimeout(r, 1500))
   }
   return results
 }
