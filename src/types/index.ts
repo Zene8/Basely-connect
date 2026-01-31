@@ -18,12 +18,13 @@ export interface Company {
 
 export interface CompanyMatch extends Company {
   matchScore: number;
-  matchedLanguages: string[];
-  matchedFrameworks: string[];
-  matchedSkills: string[];
-  missingLanguages: string[];
-  missingFrameworks: string[];
-  missingSkills: string[];
+  matchReason?: string;
+  matchedLanguages?: string[];
+  matchedFrameworks?: string[];
+  matchedSkills?: string[];
+  missingLanguages?: string[];
+  missingFrameworks?: string[];
+  missingSkills?: string[];
 }
 
 export interface GitHubAnalysis {
