@@ -1,6 +1,6 @@
 // src/lib/ai-scraper.ts
 import OpenAI from 'openai'
-import { scrapeCareerPage, ScrapedCompanyData } from '@/scraping/scraper'
+import { scrapeCareerPage, ScrapedCompanyData } from './scraper'
 
 /**
  * AI-enhanced company data with structured output
