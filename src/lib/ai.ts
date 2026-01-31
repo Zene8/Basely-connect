@@ -41,6 +41,7 @@ export async function generateMatchAnalysis(
     - Personal Statement: "${userProfile.statement || 'Not provided'}"
     - Resume Excerpt: "${(userProfile.resume || '').substring(0, 2000)}..." (truncated)
     - Key Repositories: ${JSON.stringify(userProfile.repos)}
+    - Deep Tech Stack (Detected from Config Files): ${JSON.stringify(userProfile.deepTechStack)}
     
     Company Requirements:
     - Name: ${companyProfile.name}
