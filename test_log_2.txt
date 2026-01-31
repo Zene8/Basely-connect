@@ -1,0 +1,20 @@
+Attempting to connect to database...
+Connection failed: PrismaClientInitializationError: 
+Invalid `prisma.company.count()` invocation in
+C:\Users\natha\Documents\Basely\connect\test-db.ts:7:44
+
+  4 try {
+  5     console.log('Attempting to connect to database...');
+  6     // Try a simple query
+ΓåÆ 7     const count = await prisma.company.count(
+Authentication failed against database server at `ep-xyz.us-east-2.aws.neon.tech`, the provided database credentials for `(not available)` are not valid.
+
+Please make sure to provide valid database credentials for the database server at `ep-xyz.us-east-2.aws.neon.tech`.
+    at $n.handleRequestError (C:\Users\natha\Documents\Basely\connect\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\natha\Documents\Basely\connect\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\natha\Documents\Basely\connect\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\natha\Documents\Basely\connect\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async main (C:\Users\natha\Documents\Basely\connect\test-db.ts:7:23) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}

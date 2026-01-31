@@ -2,17 +2,18 @@
 
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
-import { CompanyMatch, Company } from '@/types';
+import { CompanyMatch } from '@/types';
 import Image from 'next/image';
 
 export default function Home() {
   const { data: session, status } = useSession();
-  
+
   // State
   const [statement, setStatement] = useState('');
   const [resumeText, setResumeText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [matches, setMatches] = useState<CompanyMatch[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [availableCompanies, setAvailableCompanies] = useState<any[]>([]);
   const [fileName, setFileName] = useState('');
   const [activeStep, setActiveStep] = useState(0);
@@ -38,15 +39,17 @@ export default function Home() {
     setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (event) => {
-       const text = event.target?.result;
-       if (typeof text === 'string') setResumeText(text);
+      const text = event.target?.result;
+      if (typeof text === 'string') setResumeText(text);
     };
     reader.readAsText(file);
   };
 
   const handleMatch = async () => {
-    if (!session?.user?.name) return;
-    
+    // @ts-expect-error session user typing mismatch
+    const username = session?.user?.username || session?.user?.name;
+    if (!username) return;
+
     setIsLoading(true);
     setMatches([]);
     setActiveStep(1);
@@ -60,14 +63,14 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: session.user.name, 
+          username,
           statement,
           resumeText
         })
       });
-      
+
       const data = await res.json();
-      
+
       // Step 2: Analysis (Animation)
       await new Promise(r => setTimeout(r, 1000));
       setActiveStep(3);
@@ -79,10 +82,10 @@ export default function Home() {
           document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       }
-      
+
       // Step 3: Complete
       await new Promise(r => setTimeout(r, 800));
-      
+
     } catch (error) {
       console.error(error);
     } finally {
@@ -105,7 +108,7 @@ export default function Home() {
 
   // 2. Main Page
   return (
-    <main className="min-h-screen relative">
+    <main className="min-h-screen relative overflow-hidden">
       
       {/* BRANDING HEADER */}
       <div className="absolute top-8 left-8 z-20 flex items-center gap-3">
@@ -124,9 +127,9 @@ export default function Home() {
               <span className="text-[#fafafa] text-xs font-medium">{session.user?.name}</span>
               <button onClick={() => signOut()} className="text-[10px] text-cyan-400 hover:text-cyan-300 uppercase tracking-widest font-bold">Disconnect</button>
             </div>
-            <img 
-              src={session.user?.image || ''} 
-              alt="Profile" 
+            <img
+              src={session.user?.image || ''}
+              alt="Profile"
               className="w-10 h-10 rounded-full border border-basely-orange/30 shadow-[0_0_10px_rgba(255,107,53,0.2)]"
             />
           </div>
@@ -141,27 +144,31 @@ export default function Home() {
       </div>
 
       <div className="container mx-auto px-6">
-        
+
         {/* HERO SECTION */}
-        <section className="pt-40 pb-20 text-center max-w-4xl mx-auto">
+        <section className="pt-24 pb-12 text-center max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded bg-basely-navy/50 border border-basely-orange/20 text-basely-orange text-[11px] font-bold uppercase tracking-widest mb-8 animate-slideUp">
             <span className="w-1.5 h-1.5 rounded-full bg-basely-orange animate-pulse shadow-[0_0_8px_rgba(255,107,53,0.8)]" />
             Matching Protocol v1.0
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight leading-[1.1] animate-slideUp">
-            The Bridge to Your 
-            <br />
-            <span className="title-gradient">Technical Future.</span>
-          </h1>
-          
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-16 leading-relaxed font-light animate-slideUp">
-            Basely.Connect cross-references your engineering footprint with high-growth technical teams to find your optimal semantic fit.
-          </p>
+          {!session && (
+            <>
+              <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight leading-[1.1] animate-slideUp">
+                The Bridge to Your 
+                <br />
+                <span className="title-gradient">Technical Future.</span>
+              </h1>
+              
+              <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-light animate-slideUp">
+                Basely.Connect cross-references your engineering footprint with high-growth technical teams to find your optimal semantic fit.
+              </p>
+            </>
+          )}
 
           <div className="flex flex-col items-center gap-6 animate-slideUp">
             {!session ? (
-              <button 
+              <button
                 onClick={() => signIn('github')}
                 className="group relative px-10 py-4 bg-basely-orange hover:bg-orange-500 text-white font-bold rounded transform transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,107,53,0.4)] mx-auto flex items-center gap-3 active:scale-95"
               >
@@ -171,22 +178,22 @@ export default function Home() {
                 </svg>
               </button>
             ) : (
-              <div className="grid md:grid-cols-2 gap-8 text-left w-full">
+              <div className="grid md:grid-cols-2 gap-4 text-left w-full">
                 {/* Input Card */}
-                <div className="bg-basely-navy/30 border border-basely-orange/15 rounded-lg p-1 overflow-hidden group hover:border-basely-orange/40 transition-all">
+                <div className="bg-basely-navy/30 border border-basely-orange/15 rounded-lg p-1 overflow-hidden group hover:border-basely-orange/40 transition-all min-h-[500px]">
                   <div className="bg-basely-dark rounded p-8">
                     <h3 className="text-white font-bold mb-6 flex items-center gap-2">
                       <span className="text-basely-orange font-mono text-sm">01</span>
                       Local Data Ingestion
                     </h3>
-                    
+
                     <div className="space-y-6">
                       <div>
                         <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Resume Artifact (.txt)</label>
                         <div className="relative group/upload">
-                          <input 
-                            type="file" 
-                            onChange={handleFileChange} 
+                          <input
+                            type="file"
+                            onChange={handleFileChange}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             aria-label="Upload resume file"
                           />
@@ -199,7 +206,7 @@ export default function Home() {
 
                       <div>
                         <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Intent Statement</label>
-                        <textarea 
+                        <textarea
                           value={statement}
                           onChange={(e) => setStatement(e.target.value)}
                           placeholder="// Enter professional objectives..."
@@ -207,7 +214,7 @@ export default function Home() {
                         />
                       </div>
 
-                      <button 
+                      <button
                         onClick={handleMatch}
                         disabled={isLoading}
                         className="w-full py-4 bg-basely-orange hover:bg-orange-500 text-white font-bold text-sm tracking-widest uppercase rounded shadow-[0_0_15px_rgba(255,107,53,0.3)] hover:shadow-[0_0_25px_rgba(255,107,53,0.5)] transition-all disabled:opacity-50"
@@ -219,12 +226,12 @@ export default function Home() {
                 </div>
 
                 {/* System Log Card */}
-                <div className="bg-basely-navy/30 border border-gray-800 rounded-lg p-8 relative overflow-hidden font-mono">
+                <div className="bg-basely-navy/30 border border-gray-800 rounded-lg p-8 relative overflow-hidden font-mono min-h-[500px]">
                   <h3 className="text-white font-bold mb-6 flex items-center gap-2">
                     <span className="text-cyan-400 text-sm">02</span>
                     Runtime Status
                   </h3>
-                  
+
                   <div className="space-y-4 text-xs">
                     <div className="flex items-center justify-between py-2 border-b border-gray-800">
                       <span className="text-gray-600 tracking-tighter">Identity_Confirmed</span>
@@ -232,13 +239,16 @@ export default function Home() {
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-800">
                       <span className="text-gray-600 tracking-tighter">Subject_Token</span>
-                      <span className="text-white truncate max-w-[150px]">{session.user?.name}</span>
+                      <span className="text-white truncate max-w-[150px]">
+                        {/* @ts-expect-error session user typing mismatch */}
+                        {session.user?.username || session.user?.name}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-gray-800">
                       <span className="text-gray-600 tracking-tighter">Neural_Engine</span>
-                      <span className="text-cyan-400">OpenAI::GPT-4o-Mini</span>
+                      <span className="text-cyan-400">OpenAI::GPT-5-Mini</span>
                     </div>
-                    
+
                     <div className="pt-4 space-y-3">
                       <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 1 ? 'opacity-100' : 'opacity-30'}`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 1 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-gray-700'}`} />
@@ -258,7 +268,7 @@ export default function Home() {
               </div>
             )}
 
-            <button 
+            <button
               onClick={() => setShowPreview(!showPreview)}
               className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.2em] hover:text-cyan-400 transition-colors border-b border-transparent hover:border-cyan-400/30 pb-1"
             >
@@ -274,7 +284,7 @@ export default function Home() {
               <h3 className="font-mono text-xs text-cyan-400 uppercase tracking-widest whitespace-nowrap">Database Nodes</h3>
               <div className="h-[1px] w-full bg-gradient-to-r from-cyan-500/30 to-transparent"></div>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {availableCompanies.map((company) => (
                 <div key={company.id} className="p-6 bg-basely-navy/20 border border-gray-800 rounded-lg hover:border-cyan-500/20 transition-all group">
@@ -324,7 +334,7 @@ export default function Home() {
                     <div className="md:w-1.5 bg-gray-800 group-hover:bg-basely-orange/20 transition-colors relative">
                       <div className="absolute top-0 left-0 w-full bg-basely-orange shadow-[0_0_15px_rgba(255,107,53,0.5)] transition-all duration-1000" style={{ height: `${company.matchScore}%` }} />
                     </div>
-                    
+
                     <div className="flex-1 p-8">
                       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
                         <div className="flex items-center gap-5">
@@ -341,7 +351,7 @@ export default function Home() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="text-right flex flex-col items-end">
                           <div className="text-4xl font-black text-white leading-none mb-1 group-hover:text-glow transition-all font-mono italic">
                             {company.matchScore}%
@@ -351,7 +361,7 @@ export default function Home() {
                       </div>
 
                       <p className="text-gray-400 text-sm leading-relaxed mb-8 font-light border-l border-gray-800 pl-6 py-1 group-hover:border-basely-orange/30 transition-all italic">
-                        "{company.matchReason}"
+                        &quot;{company.matchReason}&quot;
                       </p>
 
                       <div className="flex flex-wrap gap-2">
