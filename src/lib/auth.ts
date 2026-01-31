@@ -16,14 +16,20 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        // @ts-ignore
+        // @ts-expect-error extending session type
         session.accessToken = token.accessToken;
+        // @ts-expect-error extending session type
+        session.user.username = token.username;
       }
       return session;
     },
-    async jwt({ token, account }) {
+    async jwt({ token, account, profile }) {
       if (account) {
         token.accessToken = account.access_token;
+      }
+      if (profile) {
+        // @ts-expect-error extending token type
+        token.username = profile.login;
       }
       return token;
     },

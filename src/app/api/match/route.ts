@@ -14,14 +14,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username is required' }, { status: 400 });
     }
 
-    // @ts-ignore
+    // @ts-expect-error extending session type
     const token = session?.accessToken;
     const githubData = await getGitHubProfile(username, token);
     const companiesRaw = await prisma.company.findMany();
-    
+
     // Heuristic Filter
     const candidates = companiesRaw.map(c => {
-      const languages = JSON.parse(c.languages) as string[];
+      const languages = JSON.parse(c.languages || '[]') as string[];
       // Basic overlap check
       const matchCount = languages.filter(l => githubData.topLanguages.includes(l)).length;
       const heuristicScore = (matchCount / (languages.length || 1)) * 100;
@@ -33,20 +33,35 @@ export async function POST(request: Request) {
 
     if (process.env.OPENAI_API_KEY) {
       const results = await Promise.all(topCandidates.map(async (company) => {
+        const companyLangs = JSON.parse(company.languages || '[]');
+        const companySkills = JSON.parse(company.skills || '[]');
+
         const analysis = await generateMatchAnalysis(
-          { 
-            languages: githubData.topLanguages, 
+          {
+            languages: githubData.topLanguages,
             bio: githubData.bio,
+            name: githubData.name,
+            company: githubData.company,
+            blog: githubData.blog,
+            location: githubData.location,
+            organizations: githubData.organizations,
+            socials: githubData.socialAccounts,
+            profileReadme: githubData.profileReadme,
             statement: statement,
             resume: resumeText,
-            repos: githubData.repos.map(r => ({ name: r.name, desc: r.description, lang: r.language })) 
+            repos: githubData.repos.map(r => ({ 
+              name: r.name, 
+              desc: r.description, 
+              lang: r.language,
+              topics: r.topics
+            }))
           },
           {
             name: company.name,
             desc: company.description,
             requirements: {
-               langs: JSON.parse(company.languages),
-               skills: JSON.parse(company.skills)
+              langs: companyLangs,
+              skills: companySkills
             }
           }
         );
@@ -59,12 +74,13 @@ export async function POST(request: Request) {
           missingSkills: analysis.weaknesses
         };
       }));
-      
+
       return NextResponse.json(results.sort((a, b) => b.matchScore - a.matchScore));
     }
 
     return NextResponse.json(topCandidates);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Match Error:', error);
     return NextResponse.json({ error: error.message || 'Server Error' }, { status: 500 });

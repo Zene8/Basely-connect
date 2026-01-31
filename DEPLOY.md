@@ -40,6 +40,7 @@ This guide deploys to **Vercel** but uses your existing specific domain: `connec
    - `GITHUB_SECRET`: Your GitHub OAuth Client Secret.
    - `NEXTAUTH_SECRET`: Generate a random string.
    - `NEXTAUTH_URL`: `https://connect.basely.co.uk`
+   - `GITHUB_TOKEN`: (Optional) Personal Access Token for higher rate limits.
 4. Click **Deploy**.
 
 ### Step C: Configure Custom Domain (`connect.basely.co.uk`)

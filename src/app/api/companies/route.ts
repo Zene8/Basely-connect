@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   try {
     const companies = await prisma.company.findMany()
-    
+
     // Parse JSON strings back to arrays
     const formattedCompanies = companies.map(c => ({
       ...c,
@@ -14,6 +14,7 @@ export async function GET() {
     }))
 
     return NextResponse.json(formattedCompanies)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(error)
     return NextResponse.json({ error: error.message }, { status: 500 })

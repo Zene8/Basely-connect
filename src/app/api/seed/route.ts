@@ -58,16 +58,15 @@ export async function GET() {
 
     let count = 0
     for (const company of companies) {
-      // @ts-ignore
       const exists = await prisma.company.findFirst({ where: { name: company.name } })
       if (!exists) {
-        // @ts-ignore
         await prisma.company.create({ data: company })
         count++
       }
     }
 
     return NextResponse.json({ success: true, message: `Seeded ${count} companies.` })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(error)
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
