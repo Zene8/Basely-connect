@@ -161,7 +161,7 @@ export default function Home() {
               </h1>
               
               <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-light animate-slideUp">
-                Basely.Connect cross-references your engineering footprint with high-growth technical teams to find your optimal semantic fit.
+                Analyze your GitHub profile, resume, and professional goals to discover the companies that are the best technical and cultural fit for you.  
               </p>
             </>
           )}
