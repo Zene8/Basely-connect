@@ -23,7 +23,7 @@ const stringToColor = (str: string) => {
 
 async function main() {
   console.log(`Start seeding from Excel...`)
-  
+
   // Read Excel
   const excelPath = path.join(process.cwd(), 'Sponsor Skill Interest Survey (Responses).xlsx');
   const workbook = XLSX.readFile(excelPath);
@@ -32,19 +32,19 @@ async function main() {
 
   // Clear existing
   await prisma.company.deleteMany({});
-  
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const row of data as any[]) {
     const name = row['Name of Company'];
     if (!name) continue;
 
     const languages = cleanArray(row['Langauges(JS, Python, C etc)']);
     const frameworks = cleanArray(row['Frameworks and Libraries (React, Pytorch)']);
-    
+
     // Merge soft skills + technical extras + "anything else" into broad skills/traits
     const softSkills = cleanArray(row['Personal Qualities (e.g. time management, leadership, team player, research). Seperate with comma + space']);
     const otherTech = cleanArray(row['Any other technical skills?']);
-    const otherTraits = cleanArray(row['Anything else you look for in canidates?']);
-    
+
     const allSkills = Array.from(new Set([...softSkills, ...otherTech]));
 
     const description = row['What seperates you from other companies here?'] || `A technology company specializing in ${languages[0] || 'software development'}.`;

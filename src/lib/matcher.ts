@@ -2,6 +2,7 @@ interface CandidateProfile {
   username: string;
   bio: string | null;
   topLanguages: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   repos: any[];
 }
 
@@ -32,7 +33,7 @@ export async function matchCandidateToCompanies(candidate: CandidateProfile, com
   for (const company of companies) {
     const required = new Set(JSON.parse(company.requiredSkills) as string[]);
     const preferred = new Set(JSON.parse(company.preferredLangs) as string[]);
-    
+
     let score = 0;
     const matches: string[] = [];
 
@@ -49,7 +50,7 @@ export async function matchCandidateToCompanies(candidate: CandidateProfile, com
 
     // Normalize score (simple version)
     // Max potential score is rough, just relative comparison needed
-    
+
     if (score > highestScore) {
       highestScore = score;
       bestMatch = company;

@@ -12,7 +12,9 @@ export interface MatchResult {
 }
 
 export async function generateMatchAnalysis(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userProfile: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   companyProfile: any
 ): Promise<MatchResult> {
   if (!process.env.OPENAI_API_KEY) {
@@ -28,10 +30,17 @@ export async function generateMatchAnalysis(
     Analyze the fit between this candidate and this company.
     
     Candidate Data:
+    - Name: ${userProfile.name}
     - Bio: ${userProfile.bio}
+    - Company/Location: ${userProfile.company} / ${userProfile.location}
+    - Website: ${userProfile.blog}
     - Languages: ${userProfile.languages.join(', ')}
+    - Organizations: ${JSON.stringify(userProfile.organizations)}
+    - Socials: ${JSON.stringify(userProfile.socials)}
+    - Profile README: ${userProfile.profileReadme ? userProfile.profileReadme.substring(0, 1500) : 'None'}
     - Personal Statement: "${userProfile.statement || 'Not provided'}"
-    - Resume Excerpt: "${(userProfile.resume || '').substring(0, 1000)}..." (truncated)
+    - Resume Excerpt: "${(userProfile.resume || '').substring(0, 2000)}..." (truncated)
+    - Key Repositories: ${JSON.stringify(userProfile.repos)}
     
     Company Requirements:
     - Name: ${companyProfile.name}
@@ -39,10 +48,13 @@ export async function generateMatchAnalysis(
     - Tech Stack: ${JSON.stringify(companyProfile.requirements)}
     
     Task:
+    Provide a deep semantic analysis of the technical and cultural fit. 
+    Use the Profile README and Repositories to find specific evidence of expertise.
+    
     Return a strictly valid JSON object:
     {
       "score": number (0-100),
-      "reasoning": "Concise explanation focusing on why the candidate fits the specific tech stack and culture.",
+      "reasoning": "Deep explanation focusing on the synergy between their open-source footprint, organizations, and the company goals.",
       "strengths": ["Top 3 matching skills/traits"],
       "weaknesses": ["Key missing requirements"]
     }
@@ -50,7 +62,7 @@ export async function generateMatchAnalysis(
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       messages: [
         { role: "system", content: "You are a recruiter. Output JSON only." },
         { role: "user", content: prompt }
@@ -61,7 +73,7 @@ export async function generateMatchAnalysis(
 
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response");
-    
+
     return JSON.parse(content) as MatchResult;
   } catch (error) {
     console.error("OpenAI Match Error:", error);

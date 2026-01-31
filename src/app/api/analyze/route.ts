@@ -13,19 +13,25 @@ export async function POST(req: Request) {
     }
 
     // Use access token from session if available
-    // @ts-ignore
+    // @ts-expect-error extending session type
     const token = session?.accessToken;
 
     const profile = await getGitHubProfile(username, token);
 
     return NextResponse.json({
+      name: profile.name,
+      bio: profile.bio,
+      location: profile.location,
       languages: profile.topLanguages,
-      frameworks: [], // This would require deeper repo analysis (package.json parsing)
-      skills: [], // Mapped from languages/bio
+      organizations: profile.organizations,
+      socials: profile.socialAccounts,
+      frameworks: [], 
+      skills: [], 
       totalRepos: profile.totalRepos,
-      totalContributions: profile.totalSize, // Using size as proxy for now
+      totalContributions: profile.totalSize, 
       topRepoStars: profile.totalStars,
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

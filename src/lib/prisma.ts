@@ -1,15 +1,21 @@
 import { PrismaClient } from '@prisma/client'
-import { Pool } from '@neondatabase/serverless'
+import { Pool, neonConfig } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
+import ws from 'ws'
+
+if (typeof window === 'undefined') {
+  neonConfig.webSocketConstructor = ws
+}
 
 const prismaClientSingleton = () => {
-  const url = process.env.DATABASE_URL
+  let url = process.env.DATABASE_URL || ''
+  
+  // Clean URL from quotes if they exist
+  url = url.replace(/^"|"$/g, '')
 
   if (url && (url.startsWith('postgres://') || url.startsWith('postgresql://'))) {
     const pool = new Pool({ connectionString: url })
-    // @ts-ignore
     const adapter = new PrismaNeon(pool)
-    // @ts-ignore
     return new PrismaClient({ adapter })
   }
 
