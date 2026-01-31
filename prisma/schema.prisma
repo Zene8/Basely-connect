@@ -13,17 +13,20 @@ datasource db {
 
 model Company {
   id            Int      @id @default(autoincrement())
-  name          String
+  name          String   @unique
   logo          String   @default("🏢")
   color         String   @default("#888888")
   industry      String
   description   String
   // Storing arrays as JSON strings
-  languages     String   
+  languages     String
   frameworks    String
   skills        String
-  experience    String
-  contributions String
+  qualities     String   @default("[]")
+  experience    String   @default("See description")
+  contributions String   @default("")
+  lookingFor    String   @default("")
+  careerPageUrl String?
 }
 
 model User {
