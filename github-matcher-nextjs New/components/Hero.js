@@ -27,7 +27,7 @@ export default function Hero({ githubUrl, setGithubUrl, isAnalyzing, activeStep,
       
       <p className={styles.subtitle}>
         Companies define the exact candidate attributes they&apos;re looking for. 
-        Submit your GitHub and we&apos;ll match you with opportunities that fit your profile.
+        Submit your GitHub and we&apos;ll find the perfect company for you!
       </p>
 
       <div className={styles.inputWrapper}>
@@ -70,8 +70,8 @@ export default function Hero({ githubUrl, setGithubUrl, isAnalyzing, activeStep,
       )}
 
       <div className={styles.stats}>
-        <Stat number="12,000+" label="Developers matched" />
-        <Stat number="500+" label="Partner companies" />
+        <Stat number="100+" label="Developers matched" />
+        <Stat number="7" label="Partner companies" />
         <Stat number="94%" label="Match accuracy" />
       </div>
     </main>
