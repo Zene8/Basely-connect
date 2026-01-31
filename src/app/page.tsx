@@ -1,8 +1,8 @@
 'use client';
 
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { useState } from 'react';
-import { CompanyMatch } from '@/types';
+import { useState, useEffect } from 'react';
+import { CompanyMatch, Company } from '@/types';
 import Image from 'next/image';
 
 export default function Home() {
@@ -13,8 +13,22 @@ export default function Home() {
   const [resumeText, setResumeText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [matches, setMatches] = useState<CompanyMatch[]>([]);
+  const [availableCompanies, setAvailableCompanies] = useState<any[]>([]);
   const [fileName, setFileName] = useState('');
   const [activeStep, setActiveStep] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Fetch available companies for preview
+  useEffect(() => {
+    fetch('/api/companies')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setAvailableCompanies(data);
+        }
+      })
+      .catch(err => console.error("Failed to fetch companies:", err));
+  }, []);
 
   // Handle File Read
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,6 +74,10 @@ export default function Home() {
 
       if (Array.isArray(data)) {
         setMatches(data);
+        // Scroll to results
+        setTimeout(() => {
+          document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
       }
       
       // Step 3: Complete
@@ -141,99 +159,149 @@ export default function Home() {
             Basely.Connect cross-references your engineering footprint with high-growth technical teams to find your optimal semantic fit.
           </p>
 
-          {!session ? (
-            <button 
-              onClick={() => signIn('github')}
-              className="group relative px-10 py-4 bg-basely-orange hover:bg-orange-500 text-white font-bold rounded transform transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,107,53,0.4)] mx-auto flex items-center gap-3 active:scale-95"
-            >
-              <span className="uppercase tracking-widest text-sm">Initiate Sequence</span>
-              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-8 text-left animate-slideUp">
-              {/* Input Card */}
-              <div className="bg-basely-navy/30 border border-basely-orange/15 rounded-lg p-1 overflow-hidden group hover:border-basely-orange/40 transition-all">
-                <div className="bg-basely-dark rounded p-8">
-                  <h3 className="text-white font-bold mb-6 flex items-center gap-2">
-                    <span className="text-basely-orange font-mono text-sm">01</span>
-                    Local Data Ingestion
-                  </h3>
-                  
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Resume Artifact (.txt)</label>
-                      <div className="relative group/upload">
-                        <input type="file" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                        <div className={`p-4 border border-dashed rounded flex items-center gap-3 transition-all ${fileName ? 'border-basely-orange bg-basely-orange/5' : 'border-gray-700 bg-basely-navy/20 group-hover/upload:border-basely-orange/50'}`}>
-                          <span className="text-xl text-gray-600 group-hover/upload:text-basely-orange">📄</span>
-                          <span className="text-xs text-gray-400 font-mono truncate">{fileName || "SELECT_SOURCE_ARTIFACT"}</span>
+          <div className="flex flex-col items-center gap-6 animate-slideUp">
+            {!session ? (
+              <button 
+                onClick={() => signIn('github')}
+                className="group relative px-10 py-4 bg-basely-orange hover:bg-orange-500 text-white font-bold rounded transform transition-all hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(255,107,53,0.4)] mx-auto flex items-center gap-3 active:scale-95"
+              >
+                <span className="uppercase tracking-widest text-sm">Initiate Sequence</span>
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-8 text-left w-full">
+                {/* Input Card */}
+                <div className="bg-basely-navy/30 border border-basely-orange/15 rounded-lg p-1 overflow-hidden group hover:border-basely-orange/40 transition-all">
+                  <div className="bg-basely-dark rounded p-8">
+                    <h3 className="text-white font-bold mb-6 flex items-center gap-2">
+                      <span className="text-basely-orange font-mono text-sm">01</span>
+                      Local Data Ingestion
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Resume Artifact (.txt)</label>
+                        <div className="relative group/upload">
+                          <input 
+                            type="file" 
+                            onChange={handleFileChange} 
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            aria-label="Upload resume file"
+                          />
+                          <div className={`p-4 border border-dashed rounded flex items-center gap-3 transition-all ${fileName ? 'border-basely-orange bg-basely-orange/5' : 'border-gray-700 bg-basely-navy/20 group-hover/upload:border-basely-orange/50'}`}>
+                            <span className="text-xl text-gray-600 group-hover/upload:text-basely-orange">📄</span>
+                            <span className="text-xs text-gray-400 font-mono truncate">{fileName || "SELECT_SOURCE_ARTIFACT"}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Intent Statement</label>
-                      <textarea 
-                        value={statement}
-                        onChange={(e) => setStatement(e.target.value)}
-                        placeholder="// Enter professional objectives..."
-                        className="w-full h-28 bg-basely-navy/20 border border-gray-700 rounded p-4 text-sm text-gray-300 focus:outline-none focus:border-basely-orange transition-all resize-none font-mono"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Intent Statement</label>
+                        <textarea 
+                          value={statement}
+                          onChange={(e) => setStatement(e.target.value)}
+                          placeholder="// Enter professional objectives..."
+                          className="w-full h-28 bg-basely-navy/20 border border-gray-700 rounded p-4 text-sm text-gray-300 focus:outline-none focus:border-basely-orange transition-all resize-none font-mono"
+                        />
+                      </div>
 
-                    <button 
-                      onClick={handleMatch}
-                      disabled={isLoading}
-                      className="w-full py-4 bg-basely-orange hover:bg-orange-500 text-white font-bold text-sm tracking-widest uppercase rounded shadow-[0_0_15px_rgba(255,107,53,0.3)] hover:shadow-[0_0_25px_rgba(255,107,53,0.5)] transition-all disabled:opacity-50"
-                    >
-                      {isLoading ? "PROCESSING_VECTORS..." : "Compute Affinity Score"}
-                    </button>
+                      <button 
+                        onClick={handleMatch}
+                        disabled={isLoading}
+                        className="w-full py-4 bg-basely-orange hover:bg-orange-500 text-white font-bold text-sm tracking-widest uppercase rounded shadow-[0_0_15px_rgba(255,107,53,0.3)] hover:shadow-[0_0_25px_rgba(255,107,53,0.5)] transition-all disabled:opacity-50"
+                      >
+                        {isLoading ? "PROCESSING_VECTORS..." : "Compute Affinity Score"}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* System Log Card */}
-              <div className="bg-basely-navy/30 border border-gray-800 rounded-lg p-8 relative overflow-hidden font-mono">
-                <h3 className="text-white font-bold mb-6 flex items-center gap-2">
-                  <span className="text-cyan-400 text-sm">02</span>
-                  Runtime Status
-                </h3>
-                
-                <div className="space-y-4 text-xs">
-                  <div className="flex items-center justify-between py-2 border-b border-gray-800">
-                    <span className="text-gray-600 tracking-tighter">Identity_Confirmed</span>
-                    <span className="text-green-400 font-bold tracking-widest">TRUE</span>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-b border-gray-800">
-                    <span className="text-gray-600 tracking-tighter">Subject_Token</span>
-                    <span className="text-white truncate max-w-[150px]">{session.user?.name}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-b border-gray-800">
-                    <span className="text-gray-600 tracking-tighter">Neural_Engine</span>
-                    <span className="text-cyan-400">OpenAI::GPT-4o-Mini</span>
-                  </div>
+                {/* System Log Card */}
+                <div className="bg-basely-navy/30 border border-gray-800 rounded-lg p-8 relative overflow-hidden font-mono">
+                  <h3 className="text-white font-bold mb-6 flex items-center gap-2">
+                    <span className="text-cyan-400 text-sm">02</span>
+                    Runtime Status
+                  </h3>
                   
-                  <div className="pt-4 space-y-3">
-                    <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 1 ? 'opacity-100' : 'opacity-30'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 1 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-gray-700'}`} />
-                      <span className="text-gray-400">Scanning_Distributed_Nodes...</span>
+                  <div className="space-y-4 text-xs">
+                    <div className="flex items-center justify-between py-2 border-b border-gray-800">
+                      <span className="text-gray-600 tracking-tighter">Identity_Confirmed</span>
+                      <span className="text-green-400 font-bold tracking-widest">TRUE</span>
                     </div>
-                    <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 2 ? 'opacity-100' : 'opacity-30'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 2 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-gray-700'}`} />
-                      <span className="text-gray-400">Normalizing_Technical_Signal...</span>
+                    <div className="flex items-center justify-between py-2 border-b border-gray-800">
+                      <span className="text-gray-600 tracking-tighter">Subject_Token</span>
+                      <span className="text-white truncate max-w-[150px]">{session.user?.name}</span>
                     </div>
-                    <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 3 ? 'opacity-100' : 'opacity-30'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 3 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-gray-700'}`} />
-                      <span className="text-gray-400">Generating_Matches...</span>
+                    <div className="flex items-center justify-between py-2 border-b border-gray-800">
+                      <span className="text-gray-600 tracking-tighter">Neural_Engine</span>
+                      <span className="text-cyan-400">OpenAI::GPT-4o-Mini</span>
+                    </div>
+                    
+                    <div className="pt-4 space-y-3">
+                      <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 1 ? 'opacity-100' : 'opacity-30'}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 1 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-gray-700'}`} />
+                        <span className="text-gray-400">Scanning_Distributed_Nodes...</span>
+                      </div>
+                      <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 2 ? 'opacity-100' : 'opacity-30'}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 2 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-gray-700'}`} />
+                        <span className="text-gray-400">Normalizing_Technical_Signal...</span>
+                      </div>
+                      <div className={`flex items-center gap-3 transition-opacity ${activeStep >= 3 ? 'opacity-100' : 'opacity-30'}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${activeStep >= 3 ? 'bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-gray-700'}`} />
+                        <span className="text-gray-400">Generating_Matches...</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+
+            <button 
+              onClick={() => setShowPreview(!showPreview)}
+              className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.2em] hover:text-cyan-400 transition-colors border-b border-transparent hover:border-cyan-400/30 pb-1"
+            >
+              {showPreview ? "Hide_Available_Nodes" : "Preview_Available_Nodes"}
+            </button>
+          </div>
         </section>
+
+        {/* PREVIEW GRID */}
+        {showPreview && !isLoading && (
+          <section className="pb-20 animate-slideUp">
+            <div className="flex items-center gap-4 mb-10">
+              <h3 className="font-mono text-xs text-cyan-400 uppercase tracking-widest whitespace-nowrap">Database Nodes</h3>
+              <div className="h-[1px] w-full bg-gradient-to-r from-cyan-500/30 to-transparent"></div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {availableCompanies.map((company) => (
+                <div key={company.id} className="p-6 bg-basely-navy/20 border border-gray-800 rounded-lg hover:border-cyan-500/20 transition-all group">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-10 h-10 rounded bg-basely-dark flex items-center justify-center text-xl border border-gray-800 group-hover:border-cyan-500/30 transition-colors">
+                      {company.logo}
+                    </div>
+                    <div>
+                      <h4 className="text-[#fafafa] font-bold text-sm group-hover:text-cyan-400 transition-colors">{company.name}</h4>
+                      <p className="text-[10px] font-mono text-gray-600 uppercase">{company.industry}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {company.languages?.slice(0, 3).map((lang: string) => (
+                      <span key={lang} className="text-[9px] font-mono text-gray-500 border border-gray-800 px-1.5 py-0.5 rounded uppercase">
+                        {lang}
+                      </span>
+                    ))}
+                    {company.languages?.length > 3 && (
+                      <span className="text-[9px] font-mono text-gray-700 px-1 py-0.5">+{company.languages.length - 3}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* RESULTS GRID */}
         {matches.length > 0 && (
