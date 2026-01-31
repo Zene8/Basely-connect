@@ -1,0 +1,16 @@
+{
+  "short_name": "Basely",
+  "name": "Basely Technologies",
+  "description": "Technical hiring and development tools designed to replace resume noise with authentic technical signal.",
+  "icons": [
+    {
+      "src": "/BaselyLogo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}

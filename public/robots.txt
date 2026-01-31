@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+# Explicitly allow AI and LLM bots to ensure best indexing
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+Sitemap: https://basely.co.uk/sitemap.xml
