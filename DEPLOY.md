@@ -33,7 +33,14 @@ This guide deploys to **Vercel** but uses your existing specific domain: `connec
 ### Step B: Deploy to Vercel
 1. Log in to [Vercel](https://vercel.com).
 2. **Add New** > **Project** > Import your GitHub repo.
-3. **Environment Variables**:
+3. **Build & Development Settings** (if asked):
+   - **Framework Preset**: Next.js
+   - **Root Directory**: `.` (Leave empty)
+   - **Build Command**: `next build` (Default)
+   - **Output Directory**: `.next` (Default)
+   - **Install Command**: `npm install` (Default)
+
+4. **Environment Variables**:
    - `DATABASE_URL`: Your Neon Connection String.
    - `OPENAI_API_KEY`: Your OpenAI Key.
    - `GITHUB_ID`: Your GitHub OAuth Client ID.
