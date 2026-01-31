@@ -44,24 +44,27 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       username,
       sort: "updated",
       per_page: 100,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       type: repoType as any
     });
 
     // 4. Get Organizations
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let organizations: any[] = [];
     try {
       const { data: orgs } = await octokit.rest.orgs.listForUser({ username });
       organizations = orgs.map(o => ({ login: o.login, description: o.description }));
-    } catch (e) {
+    } catch {
       console.warn("Failed to fetch organizations");
     }
 
     // 5. Get Social Accounts
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let socialAccounts: any[] = [];
     try {
       const { data: socials } = await octokit.rest.users.listSocialAccountsForUser({ username });
       socialAccounts = socials.map(s => ({ provider: s.provider, url: s.url }));
-    } catch (e) {
+    } catch {
       console.warn("Failed to fetch social accounts");
     }
 
@@ -76,14 +79,14 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
         },
       });
       profileReadme = readmeContent as unknown as string;
-    } catch (e) {
+    } catch {
       // Profile README might not exist, ignore
     }
 
     const languagesMap: Record<string, number> = {};
     let totalStars = 0;
     let totalSize = 0;
-    
+
     for (const repo of repos) {
       if (repo.language) {
         languagesMap[repo.language] = (languagesMap[repo.language] || 0) + 1;
@@ -91,7 +94,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       totalStars += repo.stargazers_count || 0;
       totalSize += repo.size || 0;
     }
-    
+
     const topLanguages = Object.entries(languagesMap)
       .sort(([, a], [, b]) => b - a)
       .map(([lang]) => lang);

@@ -2,7 +2,7 @@
 
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
-import { CompanyMatch, Company } from '@/types';
+import { CompanyMatch } from '@/types';
 import Image from 'next/image';
 
 export default function Home() {
