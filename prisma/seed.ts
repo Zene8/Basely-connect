@@ -1,66 +1,72 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+import * as XLSX from 'xlsx';
+import path from 'path';
 
 const prisma = new PrismaClient()
 
-const companies = [
-  {
-    name: 'TechFlow Solutions',
-    industry: 'Fintech',
-    description: 'A leading fintech company modernizing payment gateways.',
-    requiredSkills: JSON.stringify(['React', 'Node.js', 'AWS', 'PostgreSQL']),
-    preferredLangs: JSON.stringify(['TypeScript', 'JavaScript', 'SQL']),
-    minExperience: 3,
-    culture: 'Fast-paced, innovative, remote-first'
-  },
-  {
-    name: 'CreativePixels',
-    industry: 'Digital Agency',
-    description: 'Award-winning creative agency building immersive web experiences.',
-    requiredSkills: JSON.stringify(['Vue.js', 'CSS', 'Animation', 'Three.js']),
-    preferredLangs: JSON.stringify(['JavaScript', 'GLSL']),
-    minExperience: 1,
-    culture: 'Artistic, collaborative, design-focused'
-  },
-  {
-    name: 'DataMinds AI',
-    industry: 'Artificial Intelligence',
-    description: 'Building the next generation of predictive models.',
-    requiredSkills: JSON.stringify(['PyTorch', 'TensorFlow', 'Data Pipelines', 'Docker']),
-    preferredLangs: JSON.stringify(['Python', 'C++']),
-    minExperience: 4,
-    culture: 'Research-oriented, academic, rigorous'
-  },
-  {
-    name: 'SolidSystems',
-    industry: 'Enterprise Software',
-    description: 'Reliable backend systems for global logistics.',
-    requiredSkills: JSON.stringify(['Spring Boot', 'Microservices', 'Kafka']),
-    preferredLangs: JSON.stringify(['Java', 'Kotlin']),
-    minExperience: 5,
-    culture: 'Structured, stable, clear career ladder'
-  },
-  {
-    name: 'CloudScale',
-    industry: 'Cloud Infrastructure',
-    description: 'Infrastructure as code and developer tooling.',
-    requiredSkills: JSON.stringify(['Kubernetes', 'Terraform', 'CI/CD']),
-    preferredLangs: JSON.stringify(['Go', 'Rust', 'Bash']),
-    minExperience: 3,
-    culture: 'Engineering-led, open-source friendly'
+// Helper to clean string arrays
+const cleanArray = (str: string | undefined): string[] => {
+  if (!str) return [];
+  return str.split(/,\s*|\s+and\s+|\s*\n\s*/).map(s => s.trim()).filter(Boolean);
+};
+
+// Helper to generate a consistent color from string
+const stringToColor = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
-]
+  const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+  return '#' + '00000'.substring(0, 6 - c.length) + c;
+};
 
 async function main() {
-  console.log(`Start seeding ...`)
-  for (const company of companies) {
-    const exists = await prisma.company.findFirst({ where: { name: company.name } })
-    if (!exists) {
-        const user = await prisma.company.create({
-        data: company,
-        })
-        console.log(`Created company: ${user.name}`)
-    }
+  console.log(`Start seeding from Excel...`)
+  
+  // Read Excel
+  const excelPath = path.join(process.cwd(), 'Sponsor Skill Interest Survey (Responses).xlsx');
+  const workbook = XLSX.readFile(excelPath);
+  const sheetName = workbook.SheetNames[0];
+  const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+  // Clear existing
+  await prisma.company.deleteMany({});
+  
+  for (const row of data as any[]) {
+    const name = row['Name of Company'];
+    if (!name) continue;
+
+    const languages = cleanArray(row['Langauges(JS, Python, C etc)']);
+    const frameworks = cleanArray(row['Frameworks and Libraries (React, Pytorch)']);
+    
+    // Merge soft skills + technical extras + "anything else" into broad skills/traits
+    const softSkills = cleanArray(row['Personal Qualities (e.g. time management, leadership, team player, research). Seperate with comma + space']);
+    const otherTech = cleanArray(row['Any other technical skills?']);
+    const otherTraits = cleanArray(row['Anything else you look for in canidates?']);
+    
+    const allSkills = Array.from(new Set([...softSkills, ...otherTech]));
+
+    const description = row['What seperates you from other companies here?'] || `A technology company specializing in ${languages[0] || 'software development'}.`;
+    const contributions = row['Anything else you look for in canidates?'] || 'Passionate developers.';
+
+    const company = {
+      name: name.trim(),
+      logo: '🏢', // Could map specific names to emojis if desired
+      color: stringToColor(name),
+      industry: 'Technology', // Default
+      description: description,
+      languages: JSON.stringify(languages),
+      frameworks: JSON.stringify(frameworks),
+      skills: JSON.stringify(allSkills),
+      experience: 'See description',
+      contributions: contributions
+    };
+
+    const created = await prisma.company.create({
+      data: company,
+    })
+    console.log(`Created company: ${created.name}`)
   }
   console.log(`Seeding finished.`)
 }

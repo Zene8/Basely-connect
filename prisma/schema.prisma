@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -11,12 +12,26 @@ datasource db {
 }
 
 model Company {
-  id              String @id @default(uuid())
-  name            String
-  industry        String
-  description     String
-  requiredSkills  String // JSON string: ["React", "Node.js"]
-  preferredLangs  String // JSON string: ["TypeScript", "Python"]
-  minExperience   Int    @default(1)
-  culture         String? // Description of culture
+  id            Int      @id @default(autoincrement())
+  name          String
+  logo          String   @default("🏢")
+  color         String   @default("#888888")
+  industry      String
+  description   String
+  // Storing arrays as JSON strings
+  languages     String   
+  frameworks    String
+  skills        String
+  experience    String
+  contributions String
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  name          String?
+  image         String?
+  githubHandle  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

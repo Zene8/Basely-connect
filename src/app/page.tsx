@@ -1,140 +1,166 @@
 'use client';
 
 import { useState } from 'react';
-import { Container, Row, Col, Form, Button, Card, Spinner, Alert } from 'react-bootstrap';
+import styles from './page.module.css';
+import Navbar from '@/components/Navbar';
+import Hero from '@/components/Hero';
+import Results from '@/components/Results';
+import HowItWorks from '@/components/HowItWorks';
+import CompanyProfiles from '@/components/CompanyProfiles';
+import Footer from '@/components/Footer';
+import { Company } from '@/types';
+
+const placeholderCompanies: Company[] = [
+  {
+    id: 1,
+    name: 'TechFlow',
+    logo: '◆',
+    color: '#22d3ee',
+    industry: 'Developer Tools',
+    description: 'Building the future of developer workflows',
+    attributes: {
+      languages: ['TypeScript', 'Rust', 'Go'],
+      frameworks: ['React', 'Next.js', 'Node.js'],
+      experience: '3+ years',
+      contributions: 'Active open source contributor',
+      skills: ['API Design', 'System Design', 'CI/CD'],
+    },
+  },
+  {
+    id: 2,
+    name: 'DataPulse',
+    logo: '◈',
+    color: '#a78bfa',
+    industry: 'Data & Analytics',
+    description: 'Real-time analytics for modern teams',
+    attributes: {
+      languages: ['Python', 'SQL', 'Scala'],
+      frameworks: ['Apache Spark', 'Pandas', 'dbt'],
+      experience: '2+ years',
+      contributions: 'Data pipeline experience',
+      skills: ['Data Modeling', 'ETL', 'Machine Learning'],
+    },
+  },
+  {
+    id: 3,
+    name: 'CloudNine',
+    logo: '◐',
+    color: '#34d399',
+    industry: 'Cloud Infrastructure',
+    description: 'Simplifying cloud deployments',
+    attributes: {
+      languages: ['Go', 'Python', 'Terraform'],
+      frameworks: ['Kubernetes', 'Docker', 'AWS CDK'],
+      experience: '4+ years',
+      contributions: 'Infrastructure automation',
+      skills: ['DevOps', 'Security', 'Networking'],
+    },
+  },
+  {
+    id: 4,
+    name: 'PixelCraft',
+    logo: '▣',
+    color: '#f472b6',
+    industry: 'Design Tools',
+    description: 'Creative tools for designers',
+    attributes: {
+      languages: ['TypeScript', 'C++', 'JavaScript'],
+      frameworks: ['React', 'Electron', 'Canvas API'],
+      experience: '3+ years',
+      contributions: 'Graphics/UI libraries',
+      skills: ['WebGL', 'Performance', 'UI/UX'],
+    },
+  },
+  {
+    id: 5,
+    name: 'SecureStack',
+    logo: '⬡',
+    color: '#fb923c',
+    industry: 'Cybersecurity',
+    description: 'Enterprise security solutions',
+    attributes: {
+      languages: ['Rust', 'C', 'Python'],
+      frameworks: ['Linux Kernel', 'OpenSSL', 'gRPC'],
+      experience: '5+ years',
+      contributions: 'Security research/tools',
+      skills: ['Cryptography', 'Pentesting', 'Compliance'],
+    },
+  },
+];
 
 export default function Home() {
-  const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(''); // 'fetching', 'parsing', 'matching'
-  const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState('');
+  const [githubUrl, setGithubUrl] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [companies] = useState<Company[]>(placeholderCompanies);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!username) return;
-
-    setLoading(true);
-    setError('');
-    setResult(null);
-
+  const handleAnalyze = async () => {
+    if (!githubUrl) return;
+    setIsAnalyzing(true);
+    setActiveStep(1);
+    
     try {
-      setStatus('Fetching GitHub Profile...');
-      // Simulate steps for now until API is ready
-      // const res = await fetch('/api/match', { ... }) 
-      
-      // Temporary mock flow to test UI
-      await new Promise(r => setTimeout(r, 1000));
-      setStatus('Analyzing Code Quality...');
-      await new Promise(r => setTimeout(r, 1000));
-      setStatus('Matching with Companies...');
-      
-      // Call actual API
+      // Step 1: Scanning (Animation)
+      await new Promise(r => setTimeout(r, 800));
+      setActiveStep(2);
+
+      // Step 2: Call Backend for Match
+      const cleanUsername = githubUrl.replace('https://github.com/', '').replace('/', '');
       const res = await fetch('/api/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
+        body: JSON.stringify({ username: cleanUsername })
       });
       
-      const data = await res.json();
+      if (!res.ok) throw new Error('Match failed');
       
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to match');
-      }
+      const matchedCompanies = await res.json();
+      setCompanies(matchedCompanies);
 
-      setResult(data);
+      // Step 3: Finalize
+      await new Promise(r => setTimeout(r, 800));
+      setActiveStep(3);
+      
+      setTimeout(() => {
+        setIsAnalyzing(false);
+        setShowResults(true);
+      }, 800);
 
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setStatus('');
+    } catch (error) {
+      console.error("Analysis failed", error);
+      setIsAnalyzing(false);
+      // Optional: Show error state
     }
   };
 
+  const handleReset = () => {
+    setShowResults(false);
+    setGithubUrl('');
+    setActiveStep(0);
+  };
+
   return (
-    <Container className="py-5">
-      <Row className="justify-content-center mb-5">
-        <Col md={8} className="text-center">
-          <h1 className="display-4 fw-bold mb-3">DevTalentMatch</h1>
-          <p className="lead text-muted">
-            Stop sending resumes. Let your code speak for itself.
-            We parse your GitHub and match you with companies looking for <b>your</b> specific skills.
-          </p>
-        </Col>
-      </Row>
-
-      <Row className="justify-content-center">
-        <Col md={6}>
-          <Card className="shadow-sm border-0 p-4">
-            <Card.Body>
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
-                  <Form.Label>GitHub Username</Form.Label>
-                  <Form.Control 
-                    type="text" 
-                    placeholder="e.g., torvalds" 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    disabled={loading}
-                    size="lg"
-                  />
-                </Form.Group>
-                <div className="d-grid">
-                  <Button variant="primary" size="lg" type="submit" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Spinner animation="border" size="sm" className="me-2" />
-                        {status}
-                      </>
-                    ) : (
-                      'Find My Match'
-                    )}
-                  </Button>
-                </div>
-              </Form>
-            </Card.Body>
-          </Card>
-          
-          {error && (
-            <Alert variant="danger" className="mt-4">
-              {error}
-            </Alert>
-          )}
-        </Col>
-      </Row>
-
-      {result && (
-        <Row className="justify-content-center mt-5 fade-in">
-          <Col md={8}>
-            <h2 className="text-center mb-4">🎉 We Found a Match!</h2>
-            <Card className="border-success shadow">
-              <Card.Header className="bg-success text-white fw-bold">
-                {result.company.name}
-              </Card.Header>
-              <Card.Body className="p-4">
-                <div className="mb-3">
-                  <span className="badge bg-secondary me-2">{result.company.industry}</span>
-                  <span className="badge bg-info text-dark">Match Score: {result.matchScore}%</span>
-                </div>
-                <Card.Text className="lead">
-                  {result.company.description}
-                </Card.Text>
-                
-                <hr />
-                
-                <h5>Why you matched:</h5>
-                <p>{result.matchReason}</p>
-                
-                <div className="mt-4 d-grid gap-2 d-md-block">
-                    <Button variant="success" size="lg" className="me-md-2">Apply Now</Button>
-                    <Button variant="outline-secondary" size="lg">View Company Profile</Button>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+    <div className={styles.container}>
+      <Navbar />
+      
+      {!showResults ? (
+        <>
+          <Hero
+            githubUrl={githubUrl}
+            setGithubUrl={setGithubUrl}
+            isAnalyzing={isAnalyzing}
+            activeStep={activeStep}
+            onAnalyze={handleAnalyze}
+          />
+          <CompanyProfiles companies={companies} />
+          <HowItWorks />
+        </>
+      ) : (
+        <Results githubUrl={githubUrl} companies={companies} onReset={handleReset} />
       )}
-    </Container>
+      
+      <Footer />
+    </div>
   );
 }
