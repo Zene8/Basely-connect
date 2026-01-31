@@ -10,7 +10,6 @@
     "pages:build": "npx @cloudflare/next-on-pages"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-neon": "^7.3.0",
     "@prisma/client": "^5.22.0",
@@ -21,6 +20,7 @@
     "octokit": "^5.0.5",
     "openai": "^6.17.0",
     "papaparse": "^5.5.3",
+    "pdf-parse": "^2.4.5",
     "prisma": "^5.22.0",
     "react": "19.2.3",
     "react-bootstrap": "^2.10.10",
@@ -30,11 +30,15 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/ws": "^8.18.1",
+    "autoprefixer": "^10.4.24",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
     "tsx": "^4.21.0",
     "typescript": "^5"
   },

@@ -1,64 +1,56 @@
-# Deployment Guide: Cloudflare Pages + Neon Postgres
+# 🚀 Deployment & Testing Guide
 
-This guide walks you through deploying the Connect app for free using Cloudflare Pages (Frontend/Fullstack) and Neon (Database).
+## 1. Local Testing
+Before deploying, verify everything works on your machine.
 
-## Prerequisites
-- GitHub Account
-- Cloudflare Account
-- Neon (neon.tech) Account
-
-## Step 1: Database Setup (Neon)
-1.  Go to [Neon Console](https://console.neon.tech/) and create a new project.
-2.  Copy the **Connection String** (e.g., `postgres://user:pass@...`).
-3.  Update your local `.env` file to use this string for seeding:
-    ```env
-    DATABASE_URL="postgres://..."
-    ```
-4.  Push the schema and seed the data:
+1.  **Install Dependencies**:
     ```bash
-    # Create tables in Neon
+    npm install
+    ```
+2.  **Setup Environment**:
+    Create a `.env` file and add your `OPENAI_API_KEY` and GitHub credentials.
+    **Important**: You must use a PostgreSQL database (e.g., from [Neon](https://neon.tech)) for `DATABASE_URL`.
+3.  **Database & Seed**:
+    ```bash
     npx prisma db push
-    
-    # Import companies from Excel to Neon
+    npx prisma db seed
+    ```
+4.  **Run**:
+    ```bash
+    npm run dev
+    ```
+    Visit `http://localhost:3000` and test a GitHub profile match.
+
+## 2. Production Deployment (Free Tier)
+
+### Step A: Database (Neon.tech)
+1.  Create a free project at [Neon](https://neon.tech).
+2.  Get your `DATABASE_URL` (connection string).
+3.  Seed your production database from your local terminal:
+    ```bash
+    # Swap your local .env DATABASE_URL temporarily to the Neon string, then:
+    npx prisma db push
     npx prisma db seed
     ```
 
-## Step 2: Cloudflare Pages Setup
-1.  Push your code to a GitHub repository.
-2.  Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) > **Workers & Pages**.
-3.  Click **Create Application** > **Pages** > **Connect to Git**.
-4.  Select your repository.
-5.  **Build Settings**:
+### Step B: Hosting (Cloudflare Pages)
+1.  Push your code to **GitHub**.
+2.  In [Cloudflare Dashboard](https://dash.cloudflare.com/), go to **Workers & Pages** > **Create application** > **Pages** > **Connect to Git**.
+3.  **Build Settings**:
     - **Framework Preset**: `Next.js`
-    - **Build Command**: `npx @cloudflare/next-on-pages@1`
-    - **Output Directory**: `.vercel/output/static` (or default if using next-on-pages) -> *Actually, use the defaults provided by the preset, but ensure `nodejs_compat` is enabled.*
+    - **Build command**: `npx @cloudflare/next-on-pages@1`
+    - **Output directory**: `.vercel/output/static`
+4.  **Environment Variables**:
+    Add `DATABASE_URL`, `OPENAI_API_KEY`, `GITHUB_ID`, `GITHUB_SECRET`, `NEXTAUTH_SECRET`, and `NEXTAUTH_URL`.
+5.  **Important**: Go to **Settings** > **Functions** > **Compatibility Flags** and add `nodejs_compat`.
 
-6.  **Environment Variables** (in Cloudflare Dashboard):
-    Add the following variables:
-    - `DATABASE_URL`: Your Neon Connection String.
-    - `GITHUB_ID`: Your GitHub OAuth Client ID.
-    - `GITHUB_SECRET`: Your GitHub OAuth Client Secret.
-    - `NEXTAUTH_SECRET`: A random string.
-    - `NEXTAUTH_URL`: Your Cloudflare Pages URL (e.g., `https://connect.pages.dev`).
-    - `OPENAI_API_KEY`: Your OpenAI Key.
-    - `GOOGLE_AI_KEY`: Your Google Gemini API Key (Optional).
+### Step C: GitHub OAuth
+Update your [GitHub OAuth App](https://github.com/settings/developers) settings:
+- **Homepage URL**: `https://your-app.pages.dev`
+- **Authorization callback URL**: `https://your-app.pages.dev/api/auth/callback/github`
 
-7.  **Compatibility Flags**:
-    - Go to **Settings** > **Functions** > **Compatibility Flags**.
-    - Add `nodejs_compat`.
-
-## Step 3: Auth Configuration
-1.  Go to your [GitHub Developer Settings](https://github.com/settings/developers).
-2.  Update your OAuth App's **Authorization callback URL** to match your Cloudflare domain:
-    `https://<your-project>.pages.dev/api/auth/callback/github`
-
-## Step 4: Verify
-- Visit your Cloudflare URL.
-- Log in with GitHub.
-- Run a match!
-
----
-
-## Notes
-- **Prisma Adapter**: The project is configured to automatically use the `@prisma/adapter-neon` when a Postgres URL is detected, ensuring compatibility with Cloudflare's serverless environment.
-- **Excel Data**: The Excel file data was imported during the seed step. If you update the Excel file, re-run `npx prisma db seed` locally (pointing to the production DB) to update the records.
+## 3. Tech Stack Summary
+- **Frontend**: Next.js (App Router)
+- **AI**: OpenAI `gpt-4o-mini` (Cost-efficient, high quality)
+- **Database**: Prisma + Neon (Postgres)
+- **Auth**: NextAuth.js
