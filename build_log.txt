@@ -6,3 +6,20 @@
 - Environments: .env
 
   Creating an optimized production build ...
+Γ£ô Compiled successfully in 16.6s
+  Running TypeScript ...
+Failed to compile.
+
+./src/app/api/seed/route.ts:58:39
+Type error: Type '{ name: string; industry: string; description: string; requiredSkills: string; preferredLangs: string; minExperience: number; culture: string; }' is not assignable to type '(Without<CompanyCreateInput, CompanyUncheckedCreateInput> & CompanyUncheckedCreateInput) | (Without<...> & CompanyCreateInput)'.
+  Type '{ name: string; industry: string; description: string; requiredSkills: string; preferredLangs: string; minExperience: number; culture: string; }' is not assignable to type 'Without<CompanyUncheckedCreateInput, CompanyCreateInput> & CompanyCreateInput'.
+    Type '{ name: string; industry: string; description: string; requiredSkills: string; preferredLangs: string; minExperience: number; culture: string; }' is missing the following properties from type 'CompanyCreateInput': languages, frameworks, skills, experience, contributions
+
+  56 |       const exists = await prisma.company.findFirst({ where: { name: company.name } })
+  57 |       if (!exists) {
+> 58 |         await prisma.company.create({ data: company })
+     |                                       ^
+  59 |         count++
+  60 |       }
+  61 |     }
+Next.js build worker exited with code: 1 and signal: null
