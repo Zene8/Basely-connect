@@ -31,7 +31,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">5. Limitation of Liability</h2>
-            <p>Basely Connect is provided "as is". We are not responsible for the accuracy of AI-generated matches or the practices of matched companies.</p>
+            <p>Basely Connect is provided &quot;as is&quot;. We are not responsible for the accuracy of AI-generated matches or the practices of matched companies.</p>
           </section>
         </div>
 

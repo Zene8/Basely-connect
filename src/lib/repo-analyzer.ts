@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { RepoSummary, EnrichedRepo } from '@/types';
 
 // PLACEHOLDER: Attempt to use Claude API if available, fall back to OpenAI
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAIClient = () => {
   // Try Claude first
   if (process.env.CLAUDE_API_KEY) {

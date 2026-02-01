@@ -1,13 +1,14 @@
 import { Octokit } from "octokit";
+import { GitHubAnalysis } from "@/types";
 import { analyzeAllRepos } from "./repo-analyzer";
 
 // Helper for exponential backoff retry - FAIL FAST on Rate Limit as requested
 async function withRetry<T>(fn: () => Promise<T>, retries = 2, delay = 1000): Promise<T> {
   try {
     return await fn();
-  } catch (error: any) {
+  } catch (error) {
     // Fail Fast on Rate Limits (Quota Exhausted)
-    if (error.status === 403 || error.status === 429) {
+    if (error && typeof error === 'object' && ('status' in error) && (error.status === 403 || error.status === 429)) {
       console.error(`[GITHUB] Rate Limit Exceeded (Status ${error.status}). Failing immediately.`);
       throw new Error("GitHub API Rate Limit Exceeded. Please try again later or provide a token.");
     }
@@ -36,7 +37,7 @@ async function chunkedPromiseAll<T, R>(
   return results;
 }
 
-const GITHUB_CACHE = new Map<string, { data: any, timestamp: number }>();
+const GITHUB_CACHE = new Map<string, { data: unknown, timestamp: number }>();
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 export async function getGitHubProfile(username: string, accessToken?: string) {
@@ -49,7 +50,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
   const cached = GITHUB_CACHE.get(cacheKey);
   if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
     console.log(`[GITHUB] Using cached profile for ${username}`);
-    return cached.data;
+    return cached.data as GitHubAnalysis;
   }
 
   const octokit = new Octokit({
@@ -66,14 +67,14 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
     // However, we can try to get it via getByUsername even if authenticated to save quota on /user
 
     try {
-      const { data: publicUser } = await withRetry(() => octokit.rest.users.getByUsername({ username }));
-      user = publicUser;
+      const response = await withRetry(() => octokit.rest.users.getByUsername({ username }));
+      user = response.data;
     } catch (e) {
       console.warn(`Failed to fetch user info for ${username}`, e);
       if (accessToken) {
         // Last resort for authenticated user
-        const { data: authUser } = await withRetry(() => octokit.rest.users.getAuthenticated());
-        user = authUser;
+        const response = await withRetry(() => octokit.rest.users.getAuthenticated());
+        user = response.data;
       }
     }
 
@@ -123,7 +124,9 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
     const repos = allRepos;
 
     // Process Auxiliary Data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const organizations: any[] = (orgsResult.data as any[]).map(o => ({ login: o.login, description: o.description }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const socialAccounts: any[] = (socialsResult.data as any[]).map(s => ({ provider: s.provider, url: s.url }));
     const profileReadme = readmeResult.data as unknown as string;
 
@@ -140,7 +143,8 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
     }
 
     // 5. Deep Analysis for top repositories (Limited to 8 for speed and quota)
-    const enrichedRepos = await chunkedPromiseAll(repos.slice(0, 8), async (r) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const enrichedRepos = await chunkedPromiseAll(repos.slice(0, 8), async (r: any) => {
       let collaborators: string[] = [];
       let repoLanguages: Record<string, number> = {};
       const frameworks: string[] = [];
@@ -153,9 +157,9 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
             repo: r.name,
             per_page: 5 // Reduced from 10
           }));
-          collaborators = collabs.map(c => c.login);
+          collaborators = collabs.map((c: { login: string }) => c.login);
         }
-      } catch (e) { }
+      } catch { }
 
       try {
         const { data: langs } = await withRetry(() => octokit.rest.repos.listLanguages({
@@ -163,7 +167,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
           repo: r.name
         }));
         repoLanguages = langs;
-      } catch (e) { }
+      } catch { }
 
       // Optimized framework detection
       if ((r.size || 0) > 0) {
@@ -231,17 +235,17 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
     const repoSummaries = await analyzeAllRepos(enrichedRepos);
 
     const result = {
-      username: user.login,
-      name: user.name || "",
-      bio: user.bio || "",
-      blog: user.blog || "",
-      company: user.company || "",
-      location: user.location || "",
-      email: user.email || "",
-      hireable: user.hireable || false,
-      publicRepos: user.public_repos,
-      followers: user.followers,
-      following: user.following,
+      username: user.login as string,
+      name: (user.name as string) || "",
+      bio: (user.bio as string) || "",
+      blog: (user.blog as string) || "",
+      company: (user.company as string) || "",
+      location: (user.location as string) || "",
+      email: (user.email as string) || "",
+      hireable: (user.hireable as boolean) || false,
+      publicRepos: user.public_repos as number,
+      followers: user.followers as number,
+      following: user.following as number,
       totalRepos: repos.length,
       topLanguages,
       totalStars,
@@ -250,7 +254,8 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       socialAccounts,
       profileReadme,
       repoSummaries,
-      repos: enrichedRepos.concat(repos.slice(enrichedRepos.length, 25).map(r => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      repos: enrichedRepos.concat(repos.slice(enrichedRepos.length, 25).map((r: any) => ({
         name: r.name,
         description: r.description || "",
         language: r.language || "Unknown",
@@ -272,11 +277,12 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
 
     return result;
 
-  } catch (error: any) {
-    console.error(`GitHub API Error for ${username}:`, error.message, error.status);
-    if (error.status === 404) {
+  } catch (error) {
+    const err = error as { message: string; status: number };
+    console.error(`GitHub API Error for ${username}:`, err.message, err.status);
+    if (err.status === 404) {
       throw new Error(`GitHub user "${username}" not found.`);
     }
-    throw new Error(`GitHub API error: ${error.message}`);
+    throw new Error(`GitHub API error: ${err.message}`);
   }
 }

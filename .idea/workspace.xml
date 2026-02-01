@@ -6,17 +6,15 @@
   <component name="ChangeListManager">
     <list default="true" id="a073e7bd-10e7-42a5-9756-078d809d3145" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/generate-db.ts" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/generate-db.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/match/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/match/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/admin/clear-db/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/admin/clear-db/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/analyze/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/analyze/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/api/portfolio/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/portfolio/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/companies-db.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/companies-db.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/terms/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/terms/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib/agents.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/agents.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib/github.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/github.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/pdf.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/pdf.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib/repo-analyzer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/repo-analyzer.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/index.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

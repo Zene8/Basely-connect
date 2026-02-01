@@ -102,6 +102,7 @@ export interface GitHubAnalysis {
   socialAccounts?: SocialAccount[];
   profileReadme?: string;
   repoSummaries?: RepoSummary[];
+  repos?: EnrichedRepo[];
   error?: string;
 }
 
