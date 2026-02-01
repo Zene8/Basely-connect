@@ -1,68 +1,68 @@
 // src/app/api/scrape/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { scrapeCareerPage, scrapeMultiplePages } from '@/lib/scraper';
+import { NextRequest, NextResponse } from 'next/server'
+import { scrapeAndSave, loadFromJson } from '@/lib/scraper'
 
-// Allow longer execution time for deep scraping
-export const maxDuration = 120; // 2 minutes
+export const maxDuration = 300 // 5 minutes for thorough scraping
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { urls, url, deep = true } = body;
+    const body = await request.json()
+    const { urls, deep = true } = body
 
-    const urlList: string[] = urls || (url ? [url] : []);
-
-    if (urlList.length === 0) {
-      return NextResponse.json({ error: 'No URLs provided' }, { status: 400 });
+    if (!urls || !Array.isArray(urls) || urls.length === 0) {
+      return NextResponse.json({ error: 'No URLs provided' }, { status: 400 })
     }
 
-    console.log(`\n${'='.repeat(60)}`);
-    console.log(`🚀 Starting scrape for ${urlList.length} URL(s)`);
-    console.log(`   Deep scraping: ${deep}`);
-    console.log(`${'='.repeat(60)}\n`);
+    const validUrls = urls.filter((u: string) => u && u.startsWith('http'))
 
-    const results = await scrapeMultiplePages(urlList, deep);
+    if (validUrls.length === 0) {
+      return NextResponse.json({ error: 'No valid URLs' }, { status: 400 })
+    }
 
-    const totalChars = results.reduce((acc, r) => acc + r.totalCharacters, 0);
-    const totalPages = results.reduce((acc, r) => acc + r.totalPages, 0);
+    console.log(`\n🚀 API: Scraping ${validUrls.length} URLs...`)
 
-    console.log(`\n${'='.repeat(60)}`);
-    console.log(`✅ SCRAPE COMPLETE`);
-    console.log(`   Companies: ${results.length}`);
-    console.log(`   Total pages: ${totalPages}`);
-    console.log(`   Total characters: ${totalChars.toLocaleString()}`);
-    console.log(`${'='.repeat(60)}\n`);
+    const database = await scrapeAndSave(validUrls, deep)
 
     return NextResponse.json({
       success: true,
-      count: results.length,
-      totalPages,
-      totalCharacters: totalChars,
-      data: results,
-    });
+      message: `Scraped ${database.totalCompanies} companies`,
+      lastUpdated: database.lastUpdated,
+      totalCompanies: database.totalCompanies,
+      companies: database.companies,
+    })
 
   } catch (error) {
-    console.error('Scrape error:', error);
+    console.error('Scrape error:', error)
     return NextResponse.json(
       { error: 'Scraping failed', details: String(error) },
       { status: 500 }
-    );
+    )
   }
 }
 
-export async function GET(request: NextRequest) {
-  const url = request.nextUrl.searchParams.get('url');
-  const deep = request.nextUrl.searchParams.get('deep') !== 'false';
+export async function GET() {
+  try {
+    const database = await loadFromJson()
 
-  if (!url) {
-    return NextResponse.json({ error: 'URL parameter required' }, { status: 400 });
+    if (!database) {
+      return NextResponse.json({
+        success: false,
+        message: 'No data found',
+        companies: [],
+      })
+    }
+
+    return NextResponse.json({
+      success: true,
+      lastUpdated: database.lastUpdated,
+      totalCompanies: database.totalCompanies,
+      companies: database.companies,
+    })
+
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to load', details: String(error) },
+      { status: 500 }
+    )
   }
-
-  const result = await scrapeCareerPage(url, deep);
-
-  if (!result) {
-    return NextResponse.json({ error: 'Failed to scrape' }, { status: 500 });
-  }
-
-  return NextResponse.json(result);
 }
