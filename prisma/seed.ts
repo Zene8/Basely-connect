@@ -78,9 +78,30 @@ async function main() {
 
   // Process Excel first (source of structured skills)
   for (const row of excelRows) {
-    const rawName = row['Name of Company'];
+    // Manual name corrections
+    const nameMap: Record<string, string> = {
+      "Taking note app for Ipad": "Goodnotes",
+      "Open positions": "Jump Trading",
+      "Taking note app for Ipad ": "Goodnotes",
+      "Open positions ": "Jump Trading"
+    };
+
+    const websiteMap: Record<string, string> = {
+      "Goodnotes": "https://www.goodnotes.com",
+      "Jump Trading": "https://www.jumptrading.com"
+    };
+
+    let rawName = row['Name of Company'];
     if (!rawName) continue;
 
+    rawName = rawName.trim();
+
+    // Apply corrections
+    if (nameMap[rawName]) {
+      rawName = nameMap[rawName];
+    }
+
+    // Resume processing
     const key = normalize(rawName);
 
     const languages = cleanArray(row['Langauges(JS, Python, C etc)']);
@@ -90,7 +111,8 @@ async function main() {
     const allSkills = Array.from(new Set([...softSkills, ...otherTech]));
 
     companyMap.set(key, {
-      name: rawName.trim(), // Keep original casing from Excel as base
+      name: rawName,
+      website: websiteMap[rawName] || '',
       description: row['What seperates you from other companies here?'],
       lookingFor: row['Anything else you look for in canidates?'],
       languages,
@@ -136,9 +158,12 @@ async function main() {
     // Basic validation
     if (!data.name) continue;
 
+    const urlObj = data.website ? new URL(data.website) : null;
+    const logoUrl = urlObj ? `https://logo.clearbit.com/${urlObj.hostname}` : '🏢';
+
     const companyData = {
       name: data.name,
-      logo: '🏢',
+      logo: logoUrl,
       color: stringToColor(data.name),
       industry: 'Technology', // Default, could define heuristic
       description: data.description || `A technology company.`,

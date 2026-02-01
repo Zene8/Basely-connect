@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CompanyMatch } from '@/types';
 import Image from 'next/image';
 import { generatePortfolioPDF } from '@/lib/pdf';
@@ -14,6 +14,7 @@ export default function Home() {
   // Navigation State
   const [view, setView] = useState<ViewState>('landing');
   const [showPartners, setShowPartners] = useState(false);
+  const partnersPanelRef = useRef<HTMLDivElement | null>(null);
 
   // Input State
   const [manualUsername, setManualUsername] = useState('');
@@ -69,6 +70,20 @@ export default function Home() {
     if (session) fetchProfile();
   }, [session]);
 
+  useEffect(() => {
+    if (session && manualUsername) {
+      setManualUsername('');
+    }
+  }, [session, manualUsername]);
+
+  useEffect(() => {
+    if (showPartners && partnersPanelRef.current) {
+      requestAnimationFrame(() => {
+        partnersPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }, [showPartners]);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cv' | 'linkedin') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -96,7 +111,7 @@ export default function Home() {
 
   const handleMatch = async () => {
     // @ts-ignore
-    const username = session?.user?.username || session?.user?.name || manualUsername;
+    const username = session?.user?.username || session?.user?.name || (!session ? manualUsername : '');
     const hasGithub = !!username;
     const hasResume = !!resumeText;
     const hasLinkedin = !!linkedinText;
@@ -150,10 +165,10 @@ export default function Home() {
   const handleDownloadPDF = () => {
     const userData = {
       ...githubProfile,
-      name: githubProfile?.name || session?.user?.name || manualUsername,
+      name: githubProfile?.name || session?.user?.name || (!session ? manualUsername : ''),
       statement: personalStatement,
       // @ts-ignore
-      username: session?.user?.username || session?.user?.name || manualUsername
+      username: session?.user?.username || session?.user?.name || (!session ? manualUsername : '')
     };
     generatePortfolioPDF(userData, matches);
   };
@@ -249,20 +264,20 @@ export default function Home() {
 
       {/* LANDING VIEW */}
       {view === 'landing' && (
-        <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center animate-fadeIn">
-          <div className="max-w-4xl mx-auto z-10">
+        <section className="min-h-screen relative flex flex-col items-center animate-fadeIn overflow-x-hidden">
+          <div className="h-screen flex flex-col items-center justify-center w-full max-w-4xl mx-auto z-10 px-6">
             <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-cyan-500/5 border border-cyan-500/10 text-cyan-400 text-[10px] font-black uppercase tracking-[0.3em] mb-12 animate-slideUp">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_10px_rgba(34,211,238,1)]" />
               Deployment Protocol v2.0
             </div>
-            <h1 className="text-6xl md:text-8xl font-black text-white mb-10 tracking-tighter leading-[0.9] animate-slideUp">
+            <h1 className="text-6xl md:text-8xl font-black text-white mb-10 tracking-tighter leading-[0.9] animate-slideUp text-center">
               The Bridge to Your <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-cyan-600">Technical Future.</span>
             </h1>
-            <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-16 leading-relaxed font-light animate-slideUp opacity-80">
+            <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-16 leading-relaxed font-light animate-slideUp opacity-80 text-center">
               Basely.Connect cross-references your engineering footprint with high-growth technical teams to find your optimal semantic fit.
             </p>
-            <div className="flex flex-col items-center gap-6 animate-slideUp">
+            <div className="flex flex-col items-center gap-6 animate-slideUp relative z-20">
               <button onClick={() => setView('onboarding')} className="px-10 py-4 bg-white text-black font-black rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(34,211,238,0.3)] uppercase tracking-[0.3em] text-[11px]">
                 Initiate Match Sequence
               </button>
@@ -271,33 +286,37 @@ export default function Home() {
                 onClick={() => setShowPartners(!showPartners)}
                 className="text-[10px] font-black font-mono text-gray-600 hover:text-cyan-500 uppercase tracking-[0.4em] transition-colors flex items-center gap-2"
               >
-                {showPartners ? '// Close_Database' : '// View_Partner_Ecosystem'}
+                {showPartners ? '// Close' : '// View_Partner_Ecosystem'}
               </button>
             </div>
+          </div>
 
-            {/* PARTNER ECOSYSTEM PREVIEW */}
-            {showPartners && (
-              <div className="mt-12 w-full max-w-5xl mx-auto animate-fadeIn">
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
-                  <div className="flex flex-wrap justify-center gap-6">
-                    {availableCompanies.slice(0, 12).map(company => (
-                      <div key={company.id} className="group flex flex-col items-center gap-2 w-20">
-                        <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center text-2xl group-hover:border-cyan-500/30 group-hover:scale-110 transition-all duration-300">
-                          {company.logo}
-                        </div>
-                        <span className="text-[8px] font-mono text-gray-500 uppercase tracking-tighter truncate w-full text-center">{company.name}</span>
+          {/* PARTNER ECOSYSTEM PREVIEW */}
+          {showPartners && (
+            <div ref={partnersPanelRef} className="w-full max-w-5xl mx-auto px-6 pb-20 animate-slideUp z-10">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden">
+                <div className="flex flex-wrap justify-center gap-6 max-h-[300px] overflow-y-auto custom-scrollbar">
+                  {availableCompanies.map(company => (
+                    <div key={company.id} className="group flex flex-col items-center gap-2 w-20 shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center relative overflow-hidden group-hover:border-cyan-500/30 group-hover:scale-110 transition-all duration-300">
+                        {company.logo && company.logo.startsWith('http') ? (
+                          <Image
+                            src={company.logo}
+                            alt={company.name}
+                            fill
+                            className="object-contain p-2"
+                          />
+                        ) : (
+                          <span className="text-2xl">{company.logo || '🏢'}</span>
+                        )}
                       </div>
-                    ))}
-                    {availableCompanies.length > 12 && (
-                      <div className="flex flex-col items-center justify-center w-20 opacity-40">
-                        <div className="text-[10px] font-mono text-gray-500">+{availableCompanies.length - 12} MORE</div>
-                      </div>
-                    )}
-                  </div>
+                      <span className="text-[8px] font-mono text-gray-500 uppercase tracking-tighter truncate w-full text-center">{company.name}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -346,7 +365,16 @@ export default function Home() {
                             </button>
                           )}
                         </div>
-                        <input type="text" value={manualUsername} onChange={(e) => setManualUsername(e.target.value)} placeholder="manual_username" disabled={!!session} className="bg-black/40 border border-gray-800 rounded-lg px-4 text-xs font-mono focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-700" />
+                        <input
+                          type="text"
+                          value={session ? '' : manualUsername}
+                          onChange={(e) => {
+                            if (!session) setManualUsername(e.target.value);
+                          }}
+                          placeholder="manual_username"
+                          disabled={!!session}
+                          className="bg-black/40 border border-gray-800 rounded-lg px-4 text-xs font-mono focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-700"
+                        />
                       </div>
                     </div>
                   </div>
@@ -409,8 +437,8 @@ export default function Home() {
                       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 bg-black/20 border border-gray-800/50 rounded-lg p-3">
                         <div className="flex flex-wrap gap-1.5">
                           {[
-                            'Quant Trading', 'Hedge Funds', 'AI / ML', 'Software Dev', 
-                            'FinTech', 'Crypto / Web3', 'Infrastructure', 'Cybersecurity', 
+                            'Quant Trading', 'Hedge Funds', 'AI / ML', 'Software Dev',
+                            'FinTech', 'Crypto / Web3', 'Infrastructure', 'Cybersecurity',
                             'DevTools', 'Consumer Tech'
                           ].map(ind => (
                             <button key={ind} onClick={() => setPreferredIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind])} className={`px-2.5 py-1.5 rounded text-[10px] font-bold border transition-all ${preferredIndustries.includes(ind) ? 'bg-cyan-500 border-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.2)]' : 'bg-black/20 border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}>
@@ -500,7 +528,18 @@ function MatchCard({ company, index }: { company: CompanyMatch; index: number })
         <div className="flex-1 p-10">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-10">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-black/40 flex items-center justify-center text-5xl border border-gray-800/50 group-hover:scale-110 transition-transform duration-500">{company.logo}</div>
+              <div className="w-20 h-20 rounded-2xl bg-black/40 border border-gray-800/50 flex items-center justify-center relative overflow-hidden group-hover:scale-110 transition-transform duration-500">
+                {company.logo && company.logo.startsWith('http') ? (
+                  <Image
+                    src={company.logo}
+                    alt={company.name}
+                    fill
+                    className="object-contain p-2"
+                  />
+                ) : (
+                  <span className="text-5xl">{company.logo || '🏢'}</span>
+                )}
+              </div>
               <div>
                 <h4 className="text-3xl font-black text-white group-hover:text-cyan-400 transition-colors mb-2 tracking-tight">{company.name}</h4>
                 <div className="flex items-center gap-3">

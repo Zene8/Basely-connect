@@ -6,11 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="a073e7bd-10e7-42a5-9756-078d809d3145" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lint_output.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lint_output_2.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/next.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/prisma/seed.ts" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/seed.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/match/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/match/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/ai-scraper.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/ai-scraper.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/companies.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/companies.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,7 +20,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="82" />
+    <option name="cachedIndexableFilesCount" value="78" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -45,6 +47,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
     "js.debugger.nextJs.config.created.client": "true",
     "js.debugger.nextJs.config.created.server": "true",
     "junie.onboarding.icon.badge.shown": "true",
@@ -87,6 +90,7 @@
       <option name="presentableId" value="Default" />
       <updated>1769887601185</updated>
       <workItem from="1769887603905" duration="5626000" />
+      <workItem from="1769911915843" duration="1248000" />
     </task>
     <servers />
   </component>
