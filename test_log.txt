@@ -1,8 +1,0 @@
-Attempting to connect to database...
-Connection failed: Error: All attempts to open a WebSocket to connect to the database failed. Please refer to https://github.com/neondatabase/serverless/blob/main/CONFIG.md#websocketconstructor-typeof-websocket--undefined. Details: TypeError: fetch failed
-    at C:\Users\natha\Documents\Basely\connect\node_modules\@neondatabase\serverless\index.js:1086:33
-    at async PrismaNeon.performIO (C:\Users\natha\Documents\Basely\connect\node_modules\@prisma\adapter-neon\dist\index.js:427:22)
-    at async PrismaNeon.queryRaw (C:\Users\natha\Documents\Basely\connect\node_modules\@prisma\adapter-neon\dist\index.js:384:17)
-    at async C:\Users\natha\Documents\Basely\connect\node_modules\@prisma\client\runtime\library.js:29:14083 {
-  clientVersion: '5.22.0'
-}
