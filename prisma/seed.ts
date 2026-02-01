@@ -13,10 +13,24 @@ interface JsonCompany {
   url: string;
   description: string;
   mainPageContent?: string;
+  // Enriched fields
+  compensation?: string;
+  benefits?: string;
+  locations?: string[];
+  roleTypes?: string[];
 }
 
 interface JsonData {
   companies: JsonCompany[];
+}
+
+interface LogoItem {
+  name: string;
+  logoUrl: string | null;
+}
+
+interface LogoJson {
+  companies: LogoItem[];
 }
 
 // Helper to clean string arrays from Excel
@@ -34,6 +48,8 @@ const stringToColor = (str: string) => {
   const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
   return '#' + '00000'.substring(0, 6 - c.length) + c;
 };
+
+const normalize = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
 
 async function main() {
   console.log(`Start seeding...`)
@@ -70,17 +86,58 @@ async function main() {
     console.error("Error reading JSON:", err);
   }
 
+  // 2b. Load Logo JSON
+  let logoMap = new Map<string, string>();
+  try {
+    const logoPath = path.join(process.cwd(), 'src', 'data', 'logo.json');
+    if (fs.existsSync(logoPath)) {
+      const raw = fs.readFileSync(logoPath, 'utf-8');
+      const parsed = JSON.parse(raw) as LogoJson;
+      for (const item of parsed.companies) {
+        if (item.logoUrl) {
+          logoMap.set(normalize(item.name), item.logoUrl);
+        }
+      }
+      console.log(`Loaded ${logoMap.size} logos from JSON.`);
+    } else {
+      console.warn(`Logo file not found at ${logoPath}`);
+    }
+  } catch (err) {
+    console.error("Error reading Logo JSON:", err);
+  }
+
   // 3. Merge Data
   // We want to create a unified map of companies by normalized name
   const companyMap = new Map<string, any>();
 
-  const normalize = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+
 
   // Process Excel first (source of structured skills)
   for (const row of excelRows) {
-    const rawName = row['Name of Company'];
+    // Manual name corrections
+    const nameMap: Record<string, string> = {
+      "Taking note app for Ipad": "Goodnotes",
+      "Open positions": "Jump Trading",
+      "Taking note app for Ipad ": "Goodnotes",
+      "Open positions ": "Jump Trading"
+    };
+
+    const websiteMap: Record<string, string> = {
+      "Goodnotes": "https://www.goodnotes.com",
+      "Jump Trading": "https://www.jumptrading.com"
+    };
+
+    let rawName = row['Name of Company'];
     if (!rawName) continue;
 
+    rawName = rawName.trim();
+
+    // Apply corrections
+    if (nameMap[rawName]) {
+      rawName = nameMap[rawName];
+    }
+
+    // Resume processing
     const key = normalize(rawName);
 
     const languages = cleanArray(row['Langauges(JS, Python, C etc)']);
@@ -90,7 +147,8 @@ async function main() {
     const allSkills = Array.from(new Set([...softSkills, ...otherTech]));
 
     companyMap.set(key, {
-      name: rawName.trim(), // Keep original casing from Excel as base
+      name: rawName,
+      website: websiteMap[rawName] || '',
       description: row['What seperates you from other companies here?'],
       lookingFor: row['Anything else you look for in canidates?'],
       languages,
@@ -120,7 +178,12 @@ async function main() {
       frameworks: existing.frameworks || [],
       skills: existing.skills || [],
       lookingFor: existing.lookingFor || '',
-      source: existing.source ? 'both' : 'json'
+      source: existing.source ? 'both' : 'json',
+      // Enriched
+      compensation: item.compensation || existing.compensation || '',
+      benefits: item.benefits || existing.benefits || '',
+      locations: item.locations || existing.locations || [],
+      roleTypes: item.roleTypes || existing.roleTypes || []
     };
 
     companyMap.set(key, merged);
@@ -136,9 +199,24 @@ async function main() {
     // Basic validation
     if (!data.name) continue;
 
+    const normalizedName = normalize(data.name);
+    // Priority: logo.json > Clearbit (only if explicitly enabled/fallback) > emoji
+    // User requested explicitly to ONLY use logo.json for now, ignoring Clearbit automagic if it fails.
+    let logoUrl = logoMap.get(normalizedName);
+
+    if (!logoUrl) {
+      // Fallback logic or '🏢' if strictly no clearbit wanted?
+      // Let's keep the URL object logic but usually utilize logoMap first.
+      const urlObj = data.website ? new URL(data.website) : null;
+      // If we want to strictly follow "only use logo.json", we might fallback to emoji.
+      // But keeping visual fallback for others is safer.
+      // For now, let's trust logoMap is the source of truth for the ones that matter.
+      logoUrl = '🏢';
+    }
+
     const companyData = {
       name: data.name,
-      logo: '🏢',
+      logo: logoUrl,
       color: stringToColor(data.name),
       industry: 'Technology', // Default, could define heuristic
       description: data.description || `A technology company.`,
@@ -148,7 +226,12 @@ async function main() {
       skills: JSON.stringify(data.skills),
       experience: 'See description',
       contributions: data.lookingFor || '',
-      lookingFor: data.lookingFor || ''
+      lookingFor: data.lookingFor || '',
+      // Enriched
+      compensation: data.compensation || '',
+      benefits: data.benefits || '',
+      locations: JSON.stringify(data.locations || []),
+      roleTypes: JSON.stringify(data.roleTypes || [])
     };
 
     try {

@@ -1,0 +1,46 @@
+
+> connect@0.1.0 prebuild
+> prisma generate
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+Γ£ö Generated Prisma Client (v5.22.0) to .\node_modules\@prisma\client in 69ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Curious about the SQL queries Prisma ORM generates? Optimize helps you enhance your visibility: https://pris.ly/tip-2-optimize
+
+
+> connect@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./src/lib/parse-resume.ts:41:1
+Module not found: Can't resolve 'pdf-parse/lib/pdf-parse.js'
+  39 |
+  40 | // @ts-ignore
+> 41 | import pdf from 'pdf-parse/lib/pdf-parse.js';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | import mammoth from 'mammoth';
+  43 |
+  44 | export async function parseResume(buffer: Buffer, mimeType: string): Promise<string> {
+
+
+
+Import trace:
+  App Route:
+    ./src/lib/parse-resume.ts
+    ./src/app/api/ingest/resume/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./src/lib/parse-resume.ts:41:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)

@@ -1,10 +1,11 @@
 'use client';
 
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CompanyMatch } from '@/types';
 import Image from 'next/image';
 import { generatePortfolioPDF } from '@/lib/pdf';
+import ReactMarkdown from 'react-markdown';
 
 type ViewState = 'landing' | 'onboarding' | 'results';
 
@@ -14,6 +15,7 @@ export default function Home() {
   // Navigation State
   const [view, setView] = useState<ViewState>('landing');
   const [showPartners, setShowPartners] = useState(false);
+  const partnersPanelRef = useRef<HTMLDivElement | null>(null);
 
   // Input State
   const [manualUsername, setManualUsername] = useState('');
@@ -27,6 +29,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [matches, setMatches] = useState<CompanyMatch[]>([]);
+  const [portfolio, setPortfolio] = useState<any>(null);
   const [githubProfile, setGithubProfile] = useState<any>(null);
 
   // Preferences State
@@ -34,6 +37,8 @@ export default function Home() {
   const [additionalContext, setAdditionalContext] = useState('');
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
   const [availableCompanies, setAvailableCompanies] = useState<any[]>([]);
+  const [targetSalary, setTargetSalary] = useState(120000);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null); // For Partner Modal
 
   // Fetch available companies
   useEffect(() => {
@@ -69,6 +74,20 @@ export default function Home() {
     if (session) fetchProfile();
   }, [session]);
 
+  useEffect(() => {
+    if (session && manualUsername) {
+      setManualUsername('');
+    }
+  }, [session, manualUsername]);
+
+  useEffect(() => {
+    if (showPartners && partnersPanelRef.current) {
+      requestAnimationFrame(() => {
+        partnersPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }, [showPartners]);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cv' | 'linkedin') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -96,7 +115,7 @@ export default function Home() {
 
   const handleMatch = async () => {
     // @ts-ignore
-    const username = session?.user?.username || session?.user?.name || manualUsername;
+    const username = session?.user?.username || session?.user?.name || (!session ? manualUsername : '');
     const hasGithub = !!username;
     const hasResume = !!resumeText;
     const hasLinkedin = !!linkedinText;
@@ -120,8 +139,9 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username,
+          resumeText,
+          linkedinText,
           statement: personalStatement,
-          resumeText: `${resumeText}\n\n${linkedinText}`,
           excludedCompanyIds: excludedIds,
           preferredIndustries,
           additionalContext
@@ -133,8 +153,9 @@ export default function Home() {
       await new Promise(r => setTimeout(r, 1800));
       setActiveStep(3);
 
-      if (Array.isArray(data)) {
-        setMatches(data);
+      if (data.matches) {
+        setMatches(data.matches);
+        setPortfolio(data.portfolio);
         setView('results');
       }
 
@@ -148,14 +169,28 @@ export default function Home() {
   };
 
   const handleDownloadPDF = () => {
-    const userData = {
-      ...githubProfile,
-      name: githubProfile?.name || session?.user?.name || manualUsername,
-      statement: personalStatement,
-      // @ts-ignore
-      username: session?.user?.username || session?.user?.name || manualUsername
-    };
-    generatePortfolioPDF(userData, matches);
+    if (portfolio) {
+      generatePortfolioPDF(portfolio, matches);
+    } else {
+      const userData = {
+        ...githubProfile,
+        name: githubProfile?.name || session?.user?.name || (!session ? manualUsername : ''),
+        statement: personalStatement,
+        // @ts-ignore
+        username: session?.user?.username || session?.user?.name || (!session ? manualUsername : '')
+      };
+      // Fallback if no synthesized portfolio yet
+      const fallbackPortfolio = {
+        name: userData.name,
+        title: "Technical Candidate",
+        summary: userData.bio || "Candidate summary.",
+        technicalExpertise: [{ category: "Skills", skills: userData.languages || [] }],
+        projectHighlights: [],
+        experienceSummary: resumeText || "",
+        careerGoals: userData.statement || ""
+      };
+      generatePortfolioPDF(fallbackPortfolio, matches);
+    }
   };
 
   if (status === 'loading') {
@@ -194,8 +229,9 @@ export default function Home() {
             <div className="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/10 blur-[80px] rounded-full" />
             <div className="flex items-center gap-4 mb-10 relative">
               <div className="w-4 h-4 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.8)]"></div>
-              <h3 className="text-white font-bold tracking-[0.2em] uppercase text-sm">Processing_Signal</h3>
+              <h3 className="text-white font-bold tracking-[0.2em] uppercase text-sm">Loading...</h3>
             </div>
+            <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] mb-8">Please wait while we process your match</p>
             <div className="space-y-8 relative">
               <div className={`flex items-center gap-5 transition-all duration-700 ${activeStep >= 1 ? 'opacity-100 translate-x-0' : 'opacity-20 -translate-x-2'}`}>
                 <span className="text-cyan-500 text-[10px] w-4">01</span>
@@ -212,7 +248,7 @@ export default function Home() {
             </div>
             <div className="mt-16 pt-8 border-t border-gray-800/50 relative">
               <div className="flex justify-between text-[9px] text-gray-500 mb-3 tracking-widest uppercase">
-                <span>Engine: GPT-4O-MINI</span>
+                <span>Engine: GPT-4o</span>
                 <span>Status: ACTIVE</span>
               </div>
               <div className="w-full bg-gray-900/50 h-1.5 rounded-full overflow-hidden border border-gray-800">
@@ -249,20 +285,20 @@ export default function Home() {
 
       {/* LANDING VIEW */}
       {view === 'landing' && (
-        <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center animate-fadeIn">
-          <div className="max-w-4xl mx-auto z-10">
+        <section className="min-h-screen relative flex flex-col items-center animate-fadeIn overflow-x-hidden">
+          <div className="h-screen flex flex-col items-center justify-center w-full max-w-4xl mx-auto z-10 px-6">
             <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-cyan-500/5 border border-cyan-500/10 text-cyan-400 text-[10px] font-black uppercase tracking-[0.3em] mb-12 animate-slideUp">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_10px_rgba(34,211,238,1)]" />
-              Deployment Protocol v2.0
+              Neural Alignment Protocol v4o
             </div>
-            <h1 className="text-6xl md:text-8xl font-black text-white mb-10 tracking-tighter leading-[0.9] animate-slideUp">
-              The Bridge to Your <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-cyan-600">Technical Future.</span>
+            <h1 className="text-6xl md:text-8xl font-black text-white mb-10 tracking-tighter leading-[0.9] animate-slideUp text-center">
+              The Dev Tool to <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-cyan-600">De-Noise Hiring.</span>
             </h1>
-            <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-16 leading-relaxed font-light animate-slideUp opacity-80">
+            <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-16 leading-relaxed font-light animate-slideUp opacity-80 text-center">
               Basely.Connect cross-references your engineering footprint with high-growth technical teams to find your optimal semantic fit.
             </p>
-            <div className="flex flex-col items-center gap-6 animate-slideUp">
+            <div className="flex flex-col items-center gap-6 animate-slideUp relative z-20">
               <button onClick={() => setView('onboarding')} className="px-10 py-4 bg-white text-black font-black rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(34,211,238,0.3)] uppercase tracking-[0.3em] text-[11px]">
                 Initiate Match Sequence
               </button>
@@ -271,33 +307,137 @@ export default function Home() {
                 onClick={() => setShowPartners(!showPartners)}
                 className="text-[10px] font-black font-mono text-gray-600 hover:text-cyan-500 uppercase tracking-[0.4em] transition-colors flex items-center gap-2"
               >
-                {showPartners ? '// Close_Database' : '// View_Partner_Ecosystem'}
+                {showPartners ? '// Close' : '// View_Partner_Ecosystem'}
               </button>
             </div>
+          </div>
 
-            {/* PARTNER ECOSYSTEM PREVIEW */}
-            {showPartners && (
-              <div className="mt-12 w-full max-w-5xl mx-auto animate-fadeIn">
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
-                  <div className="flex flex-wrap justify-center gap-6">
-                    {availableCompanies.slice(0, 12).map(company => (
-                      <div key={company.id} className="group flex flex-col items-center gap-2 w-20">
-                        <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center text-2xl group-hover:border-cyan-500/30 group-hover:scale-110 transition-all duration-300">
-                          {company.logo}
-                        </div>
-                        <span className="text-[8px] font-mono text-gray-500 uppercase tracking-tighter truncate w-full text-center">{company.name}</span>
+          {/* PARTNER ECOSYSTEM PREVIEW */}
+          {showPartners && (
+            <div ref={partnersPanelRef} className="w-full max-w-5xl mx-auto px-6 pb-20 animate-slideUp z-10">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden">
+                <div className="flex flex-wrap justify-center gap-6 max-h-[400px] overflow-y-auto custom-scrollbar p-2">
+                  {availableCompanies.map(company => (
+                    <button
+                      key={company.id}
+                      onClick={() => setSelectedCompany(company)}
+                      className="group flex flex-col items-center gap-2 w-20 shrink-0 outline-none"
+                    >
+                      <div className="w-16 h-16 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center relative overflow-hidden group-hover:border-cyan-500/50 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-300">
+                        {company.logo && company.logo.startsWith('http') ? (
+                          <Image
+                            src={company.logo}
+                            alt={company.name}
+                            fill
+                            className="object-contain p-2"
+                          />
+                        ) : (
+                          <span className="text-3xl">{company.logo || '🏢'}</span>
+                        )}
+                        {company.compensation && (
+                          <div className="absolute top-1 right-1 w-2 h-2 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_5px_cyan]" />
+                        )}
                       </div>
-                    ))}
-                    {availableCompanies.length > 12 && (
-                      <div className="flex flex-col items-center justify-center w-20 opacity-40">
-                        <div className="text-[10px] font-mono text-gray-500">+{availableCompanies.length - 12} MORE</div>
+                      <span className="text-[9px] font-mono text-gray-500 group-hover:text-cyan-400 uppercase tracking-tighter truncate w-full text-center transition-colors">
+                        {company.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* COMPANY DETAILS MODAL */}
+          {selectedCompany && (
+            <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 animate-fadeIn" onClick={() => setSelectedCompany(null)}>
+              <div className="max-w-4xl w-full bg-[#111214] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                <button onClick={() => setSelectedCompany(null)} className="absolute top-6 right-6 p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all z-10">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+
+                <div className="flex flex-col md:flex-row h-[80vh]">
+                  {/* SIDEBAR */}
+                  <div className="w-full md:w-1/3 bg-black/20 border-r border-gray-800/50 p-8 flex flex-col items-center text-center overflow-y-auto">
+                    <div className="w-32 h-32 rounded-3xl bg-white/5 border border-white/10 p-4 relative mb-6">
+                      {selectedCompany.logo && selectedCompany.logo.startsWith('http') ? (
+                        <Image src={selectedCompany.logo} alt={selectedCompany.name} fill className="object-contain p-4" />
+                      ) : (
+                        <span className="text-6xl flex items-center justify-center h-full">{selectedCompany.logo || '🏢'}</span>
+                      )}
+                    </div>
+                    <h2 className="text-2xl font-black text-white mb-2 tracking-tight">{selectedCompany.name}</h2>
+                    <div className="text-[10px] font-black font-mono text-cyan-500 uppercase tracking-widest bg-cyan-500/10 px-3 py-1 rounded-full mb-6">Verified Partner</div>
+
+                    {selectedCompany.website && (
+                      <a href={selectedCompany.website} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest mb-6 transition-all flex items-center justify-center gap-2">
+                        <span>Visit Website</span>
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                      </a>
+                    )}
+
+                    {selectedCompany.compensation && (
+                      <div className="w-full bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-4 mb-6">
+                        <div className="text-[9px] text-cyan-500 uppercase tracking-widest font-black mb-1">Total Compensation</div>
+                        <div className="text-lg font-black text-white font-mono">{selectedCompany.compensation}</div>
+                      </div>
+                    )}
+
+                    <div className="w-full space-y-4 text-left">
+                      {selectedCompany.locations && selectedCompany.locations.length > 0 && (
+                        <div>
+                          <div className="text-[9px] text-gray-500 uppercase tracking-widest font-black mb-2">Hubs</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {selectedCompany.locations.map((loc: string) => (
+                              <span key={loc} className="px-2 py-1 bg-white/5 rounded text-[10px] text-gray-300 font-mono border border-white/5 flex items-center gap-1">
+                                <span>📍</span> {loc}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedCompany.roleTypes && selectedCompany.roleTypes.length > 0 && (
+                        <div>
+                          <div className="text-[9px] text-gray-500 uppercase tracking-widest font-black mb-2">Hiring For</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {selectedCompany.roleTypes.map((role: string) => (
+                              <span key={role} className="px-2 py-1 bg-indigo-500/10 rounded text-[10px] text-indigo-300 font-mono border border-indigo-500/20">
+                                {role}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* CONTENT */}
+                  <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                      <span className="w-1 h-6 bg-cyan-500 rounded-full"></span>
+                      About the Team
+                    </h3>
+                    <p className="text-gray-300 leading-relaxed font-light mb-10 text-sm whitespace-pre-wrap">
+                      {selectedCompany.description || "A leader in the technology space."}
+                    </p>
+
+                    {selectedCompany.benefits && (
+                      <div className="bg-black/20 rounded-2xl p-6 border border-gray-800/50">
+                        <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-widest flex items-center gap-2">
+                          <span>🎁</span> Perks & Benefits
+                        </h3>
+                        {/* ReactMarkdown is great, but basic text rendering is safer if format varies */}
+                        <div className="prose prose-invert prose-sm max-w-none text-gray-400 text-xs leading-loose">
+                          <ReactMarkdown>{selectedCompany.benefits}</ReactMarkdown>
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -329,7 +469,7 @@ export default function Home() {
                     <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-[10px] text-cyan-500 border border-white/5 shrink-0">01</div>
                     <div className="flex-1">
                       <h3 className="text-white font-bold text-sm mb-4 tracking-tight">Identity Sync</h3>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className={session ? "grid grid-cols-1" : "grid grid-cols-2 gap-4"}>
                         <div className="space-y-2">
                           {session ? (
                             <div className="w-full bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-3 flex items-center gap-3">
@@ -346,7 +486,15 @@ export default function Home() {
                             </button>
                           )}
                         </div>
-                        <input type="text" value={manualUsername} onChange={(e) => setManualUsername(e.target.value)} placeholder="manual_username" disabled={!!session} className="bg-black/40 border border-gray-800 rounded-lg px-4 text-xs font-mono focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-700" />
+                        {!session && (
+                          <input
+                            type="text"
+                            value={manualUsername}
+                            onChange={(e) => setManualUsername(e.target.value)}
+                            placeholder="manual_username"
+                            className="bg-black/40 border border-gray-800 rounded-lg px-4 text-xs font-mono focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-gray-700"
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -409,8 +557,8 @@ export default function Home() {
                       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 bg-black/20 border border-gray-800/50 rounded-lg p-3">
                         <div className="flex flex-wrap gap-1.5">
                           {[
-                            'Quant Trading', 'Hedge Funds', 'AI / ML', 'Software Dev', 
-                            'FinTech', 'Crypto / Web3', 'Infrastructure', 'Cybersecurity', 
+                            'Quant Trading', 'Hedge Funds', 'AI / ML', 'Software Dev',
+                            'FinTech', 'Crypto / Web3', 'Infrastructure', 'Cybersecurity',
                             'DevTools', 'Consumer Tech'
                           ].map(ind => (
                             <button key={ind} onClick={() => setPreferredIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind])} className={`px-2.5 py-1.5 rounded text-[10px] font-bold border transition-all ${preferredIndustries.includes(ind) ? 'bg-cyan-500 border-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.2)]' : 'bg-black/20 border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}>
@@ -418,6 +566,29 @@ export default function Home() {
                             </button>
                           ))}
                         </div>
+                      </div>
+                    </div>
+
+                    {/* SALARY */}
+                    <div className="shrink-0">
+                      <label className="block text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2">Target Base Salary (GBP)</label>
+                      <div className="bg-black/20 border border-gray-800/50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs font-mono text-gray-400">£30k</span>
+                          <span className="text-sm font-mono text-cyan-400">
+                            {new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(targetSalary)}
+                          </span>
+                          <span className="text-xs font-mono text-gray-400">£300k</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={30000}
+                          max={300000}
+                          step={5000}
+                          value={targetSalary}
+                          onChange={(e) => setTargetSalary(Number(e.target.value))}
+                          className="w-full accent-cyan-500"
+                        />
                       </div>
                     </div>
 
@@ -483,13 +654,13 @@ export default function Home() {
       )}
 
       <footer className="py-20 border-t border-gray-900/50 text-center opacity-40">
-        <p className="text-[9px] font-mono text-gray-700 uppercase tracking-[0.5em]">Basely.Connect // Neural_Alignment_v2 // 2026</p>
+        <p className="text-[9px] font-mono text-gray-700 uppercase tracking-[0.5em]">Basely.Connect // Neural_Alignment_v4o // 2026</p>
       </footer>
     </main>
   );
 }
 
-function MatchCard({ company, index }: { company: CompanyMatch; index: number }) {
+function MatchCard({ company, index }: { company: any; index: number }) {
   const [expanded, setExpanded] = useState(false);
   return (
     <div className="group bg-[#111214]/90 border border-gray-800/50 hover:border-cyan-500/30 rounded-3xl overflow-hidden transition-all duration-500 animate-slideUp" style={{ animationDelay: `${index * 150}ms` }}>
@@ -500,7 +671,18 @@ function MatchCard({ company, index }: { company: CompanyMatch; index: number })
         <div className="flex-1 p-10">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-10">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-black/40 flex items-center justify-center text-5xl border border-gray-800/50 group-hover:scale-110 transition-transform duration-500">{company.logo}</div>
+              <div className="w-20 h-20 rounded-2xl bg-black/40 border border-gray-800/50 flex items-center justify-center relative overflow-hidden group-hover:scale-110 transition-transform duration-500">
+                {company.logo && company.logo.startsWith('http') ? (
+                  <Image
+                    src={company.logo}
+                    alt={company.name}
+                    fill
+                    className="object-contain p-2"
+                  />
+                ) : (
+                  <span className="text-5xl">{company.logo || '🏢'}</span>
+                )}
+              </div>
               <div>
                 <h4 className="text-3xl font-black text-white group-hover:text-cyan-400 transition-colors mb-2 tracking-tight">{company.name}</h4>
                 <div className="flex items-center gap-3">
@@ -509,13 +691,49 @@ function MatchCard({ company, index }: { company: CompanyMatch; index: number })
               </div>
             </div>
             <div className="text-right flex flex-col items-end">
-              <div className="text-6xl font-black text-white font-mono italic tracking-tighter">{company.matchScore}%</div>
+              <div className="text-6xl font-black text-white font-mono italic tracking-tighter">{company.matchScore.toFixed(2)}%</div>
               <span className="text-[10px] font-black font-mono text-gray-700 uppercase tracking-widest">Affinity_Index</span>
             </div>
           </div>
           <div className="mb-10 border-l-2 border-gray-800/50 pl-8 py-2 group-hover:border-cyan-500/20 transition-all font-mono">
-            <p className={`text-gray-400 text-base leading-relaxed font-light italic transition-all ${expanded ? '' : 'line-clamp-3'}`}>&quot;{company.matchReason}&quot;</p>
-            <button onClick={() => setExpanded(!expanded)} className="mt-4 text-[10px] font-black text-cyan-500 uppercase tracking-widest hover:text-cyan-300">{expanded ? '[-] Collapse' : '[+] Expand'}</button>
+            <div className={`text-gray-400 text-sm leading-relaxed font-light italic transition-all prose prose-invert prose-sm max-w-none ${expanded ? '' : 'line-clamp-6'}`}>
+              <ReactMarkdown>{company.matchReason}</ReactMarkdown>
+            </div>
+            {expanded && company.agentEvaluation && (
+              <div className="mt-6 space-y-4 animate-fadeIn">
+                {company.agentEvaluation.thought && (
+                  <div className="p-4 bg-black/40 border border-gray-800 rounded-xl mb-4">
+                    <div className="text-[9px] text-cyan-500 uppercase tracking-widest font-black mb-2">Agent Thought Process (ReAct)</div>
+                    <div className="text-[10px] text-gray-500 font-mono leading-relaxed whitespace-pre-wrap italic">
+                      {company.agentEvaluation.thought}
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                    <div className="text-[9px] text-gray-500 uppercase tracking-widest mb-1">Technical</div>
+                    <div className="text-xl font-black text-white">{((company.agentEvaluation.alignment.technical || 0) * 100).toFixed(2)}%</div>
+                  </div>
+                  <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                    <div className="text-[9px] text-gray-500 uppercase tracking-widest mb-1">Cultural</div>
+                    <div className="text-xl font-black text-white">{((company.agentEvaluation.alignment.cultural || 0) * 100).toFixed(2)}%</div>
+                  </div>
+                  <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                    <div className="text-[9px] text-gray-500 uppercase tracking-widest mb-1">Industry</div>
+                    <div className="text-xl font-black text-white">{((company.agentEvaluation.alignment.industry || 0) * 100).toFixed(2)}%</div>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[9px] text-cyan-500 uppercase tracking-widest font-black mb-3">Key Strengths</div>
+                  <div className="flex flex-wrap gap-2">
+                    {company.agentEvaluation.strengths.map((s: string) => (
+                      <span key={s} className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 text-[10px] font-bold rounded-lg uppercase tracking-wider">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <button onClick={() => setExpanded(!expanded)} className="mt-4 text-[10px] font-black text-cyan-500 uppercase tracking-widest hover:text-cyan-300">{expanded ? '[-] Collapse' : '[+] Expand Analysis'}</button>
           </div>
           <div className="flex flex-wrap gap-2">
             {company.matchedLanguages?.map((skill: string) => (
