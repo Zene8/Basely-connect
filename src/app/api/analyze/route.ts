@@ -19,8 +19,8 @@ export async function POST(req: Request) {
     const profile = await getGitHubProfile(username, token);
 
     // Aggregate frameworks and skills from summaries
-    const frameworks = Array.from(new Set(profile.repoSummaries?.flatMap(s => s.frameworks) || []));
-    const skills = Array.from(new Set(profile.repoSummaries?.flatMap(s => s.skills) || []));
+    const frameworks = Array.from(new Set(profile.repoSummaries?.flatMap((s: { frameworks: string[] }) => s.frameworks) || []));
+    const skills = Array.from(new Set(profile.repoSummaries?.flatMap((s: { skills: string[] }) => s.skills) || []));
 
     return NextResponse.json({
       name: profile.name,

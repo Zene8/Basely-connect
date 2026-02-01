@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { SynthesizedPortfolio, UserPreferences, AgentMatchResult, Company, GitHubAnalysis } from '@/types';
 
 // PLACEHOLDER: Attempt to use Claude API if available, fall back to OpenAI
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getAIClient = () => {
   // Try Claude first
   if (process.env.CLAUDE_API_KEY) {
@@ -289,7 +290,7 @@ export async function recruiterMatcherAgent(
       setTimeout(() => reject(new Error('Phase 1 timed out')), 30000)
     );
 
-    const screenResponse = await Promise.race([
+    const screenResponse = (await Promise.race([
       openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -299,7 +300,7 @@ export async function recruiterMatcherAgent(
         response_format: { type: "json_object" }
       }),
       timeoutPromise
-    ]) as any;
+    ])) as { choices: { message: { content: string | null } }[] };
 
     const raw = screenResponse.choices[0].message.content || '{"results": []}';
     console.log("Phase 1 Raw Response:", raw);
@@ -379,7 +380,7 @@ export async function recruiterMatcherAgent(
         setTimeout(() => reject(new Error('Phase 1.5 timed out')), 40000)
       );
 
-      const midResponse = await Promise.race([
+      const midResponse = (await Promise.race([
         openai.chat.completions.create({
           model: "gpt-4o",
           messages: [
@@ -389,7 +390,7 @@ export async function recruiterMatcherAgent(
           response_format: { type: "json_object" }
         }),
         timeoutPromise
-      ]) as any;
+      ])) as { choices: { message: { content: string | null } }[] };
 
       const midRaw = midResponse.choices[0].message.content || '{"results": []}';
       const midParsed = JSON.parse(midRaw);

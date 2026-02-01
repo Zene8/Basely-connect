@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     addSection("GITHUB PROFILE SUMMARY");
     addText(`Total Repositories: ${profile.totalRepos}`, 10);
     addText(`Total Stars: ${profile.totalStars}`, 10);
-    addText(`Total Code Size: ${Math.round(profile.totalSize / 1024)} KB`, 10);
+    addText(`Total Code Size: ${Math.round((profile.totalSize || 0) / 1024)} KB`, 10);
 
     // Top Languages
     if (profile.topLanguages && profile.topLanguages.length > 0) {
@@ -179,11 +179,11 @@ export async function POST(req: Request) {
       },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error) {
     console.error("Portfolio generation error:", error);
+    const message = error instanceof Error ? error.message : "Failed to generate portfolio";
     return NextResponse.json(
-      { error: error.message || "Failed to generate portfolio" },
+      { error: message },
       { status: 500 }
     );
   }

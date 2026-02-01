@@ -203,12 +203,13 @@ export default function Home() {
         alert("Matching failed: Unexpected response from server.");
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      if (error.name === 'AbortError') {
+      const message = error instanceof Error ? error.message : "An unexpected error occurred.";
+      if (error instanceof Error && error.name === 'AbortError') {
         alert("Matching timed out. The system is currently under heavy load. Please try again with less data.");
       } else {
-        alert(`Matching failed: ${error.message || "An unexpected error occurred."}`);
+        alert(`Matching failed: ${message}`);
       }
     } finally {
       clearTimeout(timeoutId);
