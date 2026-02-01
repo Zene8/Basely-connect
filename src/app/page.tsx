@@ -40,6 +40,39 @@ export default function Home() {
   const [targetSalary, setTargetSalary] = useState(120000);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null); // For Partner Modal
 
+  // Load state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('onboarding_state');
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        if (state.personalStatement) setPersonalStatement(state.personalStatement);
+        if (state.preferredIndustries) setPreferredIndustries(state.preferredIndustries);
+        if (state.additionalContext) setAdditionalContext(state.additionalContext);
+        if (state.excludedIds) setExcludedIds(state.excludedIds);
+        if (state.targetSalary) setTargetSalary(state.targetSalary);
+        if (state.manualUsername) setManualUsername(state.manualUsername);
+        if (state.view === 'onboarding') setView('onboarding');
+      } catch (e) {
+        console.error("Failed to load saved state", e);
+      }
+    }
+  }, []);
+
+  // Save state to localStorage on change
+  useEffect(() => {
+    const stateToSave = {
+      personalStatement,
+      preferredIndustries,
+      additionalContext,
+      excludedIds,
+      targetSalary,
+      manualUsername,
+      view
+    };
+    localStorage.setItem('onboarding_state', JSON.stringify(stateToSave));
+  }, [personalStatement, preferredIndustries, additionalContext, excludedIds, targetSalary, manualUsername, view]);
+
   // Fetch available companies
   useEffect(() => {
     fetch('/api/companies')
@@ -339,7 +372,7 @@ export default function Home() {
                       className="group flex flex-col items-center gap-2 w-20 shrink-0 outline-none"
                     >
                       <div className="w-16 h-16 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center relative overflow-hidden group-hover:border-cyan-500/50 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-300">
-                        {company.logo && company.logo.startsWith('http') ? (
+                        {company.logo && (company.logo.startsWith('http') || company.logo.startsWith('/')) ? (
                           <Image
                             src={company.logo}
                             alt={company.name}
@@ -375,7 +408,7 @@ export default function Home() {
                   {/* SIDEBAR */}
                   <div className="w-full md:w-1/3 bg-black/20 border-r border-gray-800/50 p-8 flex flex-col items-center text-center overflow-y-auto">
                     <div className="w-32 h-32 rounded-3xl bg-white/5 border border-white/10 p-4 relative mb-6">
-                      {selectedCompany.logo && selectedCompany.logo.startsWith('http') ? (
+                      {selectedCompany.logo && (selectedCompany.logo.startsWith('http') || selectedCompany.logo.startsWith('/')) ? (
                         <Image src={selectedCompany.logo} alt={selectedCompany.name} fill className="object-contain p-4" />
                       ) : (
                         <span className="text-6xl flex items-center justify-center h-full">{selectedCompany.logo || '🏢'}</span>
@@ -628,7 +661,7 @@ export default function Home() {
                       </div>
                       <div className="bg-black/40 border border-gray-800 rounded-lg p-2 overflow-y-auto custom-scrollbar flex-1 min-h-[80px]">
                         <div className="flex flex-wrap gap-1">
-                          {availableCompanies.map(c => (
+                          {Array.from(new Map(availableCompanies.map(c => [c.name, c])).values()).map(c => (
                             <button key={c.id} onClick={() => setExcludedIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id])} className={`text-[9px] font-mono px-2 py-1 rounded border truncate max-w-[120px] transition-all ${excludedIds.includes(c.id) ? 'bg-red-500/10 border-red-500/30 text-red-500' : 'border-gray-800 text-gray-600 hover:border-gray-600'}`}>
                               {excludedIds.includes(c.id) ? '✕ ' : '+ '}{c.name}
                             </button>
@@ -694,7 +727,7 @@ function MatchCard({ company, index }: { company: CompanyMatch; index: number })
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-10">
             <div className="flex items-center gap-6">
               <div className="w-20 h-20 rounded-2xl bg-black/40 border border-gray-800/50 flex items-center justify-center relative overflow-hidden group-hover:scale-110 transition-transform duration-500">
-                {company.logo && company.logo.startsWith('http') ? (
+                {company.logo && (company.logo.startsWith('http') || company.logo.startsWith('/')) ? (
                   <Image
                     src={company.logo}
                     alt={company.name}

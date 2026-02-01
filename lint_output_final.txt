@@ -1,0 +1,14 @@
+
+> connect@0.1.0 lint
+> eslint
+
+
+C:\Users\natha\Documents\Basely\connect\scripts\generate-db.ts
+  106:13  error  'assetPath' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Users\natha\Documents\Basely\connect\src\lib\repo-analyzer.ts
+  85:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 2 problems (2 errors, 0 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

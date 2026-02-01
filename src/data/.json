@@ -2,67 +2,63 @@
   "companies": [
     {
       "name": "Marshall Wace",
-      "logoUrl": src/data/MW.png
+      "logoUrl": "src/data/MW.png"
     },
     {
       "name": "IMC Trading",
-      "logoUrl": src/data/IMC.jpeg
+      "logoUrl": "src/data/IMC.jpeg"
     },
     {
       "name": "Hudson River Trading",
-      "logoUrl": src/data/HRT.png
+      "logoUrl": "src/data/HRT.png"
     },
     {
       "name": "Jump Trading",
-      "logoUrl": src/data/JT.png
+      "logoUrl": "src/data/JT.png"
     },
     {
       "name": "G-Research",
-      "logoUrl": src/data/GR.png
+      "logoUrl": "src/data/GR.jpeg"
     },
     {
       "name": "Balyasny Asset Management",
-      "logoUrl": src/data/B.svg
+      "logoUrl": "src/data/B.svg"
     },
     {
       "name": "Optiver",
-      "logoUrl": src/data/Opt.png
+      "logoUrl": "src/data/Opt.png"
     },
     {
       "name": "Citadel",
-      "logoUrl": src/data/Citadel.png
+      "logoUrl": "src/data/Citadel.png"
     },
     {
       "name": "Wintermute",
-      "logoUrl": src/data/WM.jpeg
+      "logoUrl": "src/data/WM.jpeg"
     },
     {
       "name": "Qube Research & Technologies (QRT)",
-      "logoUrl": src/data/QRT.svg
+      "logoUrl": "src/data/QRT.svg"
     },
     {
       "name": "JetBrains",
-      "logoUrl": src/data/JB.png
+      "logoUrl": "src/data/JB.png"
     },
     {
       "name": "Bending Spoons",
-      "logoUrl": src/data/BS.png
+      "logoUrl": "src/data/BS.png"
     },
     {
       "name": "Anthropic",
-      "logoUrl": src/data/Anthr.svg
+      "logoUrl": "src/data/Anthr.svg"
     },
     {
       "name": "GoodNotes",
-      "logoUrl": src/data/GN.jpg
-    },
-    {
-      "name": "The Bridge Social",
-      "careersUrl": src/data/BS.png
+      "logoUrl": "src/data/GN.jpg"
     },
     {
       "name": "Palmify",
-      "careersUrl": src/data/Palm.png
+      "careersUrl": "src/data/Palm.png"
     }
   ],
   "notes": {

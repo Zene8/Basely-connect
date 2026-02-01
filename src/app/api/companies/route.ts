@@ -1,24 +1,14 @@
-import prisma from '@/lib/prisma'
-import { NextResponse } from 'next/server'
+import { getCompanies } from '@/lib/db';
+import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const companies = await prisma.company.findMany()
-
-    // Parse JSON strings back to arrays
-    const formattedCompanies = companies.map(c => ({
-      ...c,
-      languages: JSON.parse(c.languages || '[]'),
-      frameworks: JSON.parse(c.frameworks || '[]'),
-      skills: JSON.parse(c.skills || '[]'),
-      locations: JSON.parse(c.locations || '[]'),
-      roleTypes: JSON.parse(c.roleTypes || '[]')
-    }))
-
-    return NextResponse.json(formattedCompanies)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error(error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const companies = await getCompanies();
+    return NextResponse.json(companies);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Failed to fetch companies' }, { status: 500 });
   }
 }

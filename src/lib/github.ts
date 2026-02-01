@@ -36,76 +36,56 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       throw new Error(`User ${username} not found on GitHub`);
     }
 
-    // 3. Get repositories (Deep Fetch)
+    // 3. Get repositories (Deep Fetch) in Parallel
     // Note: 'all' type is only valid for authenticated user. 
     // For other users, we use 'owner'.
     const repoType = (accessToken && user.login.toLowerCase() === username.toLowerCase()) ? "all" : "owner";
 
-    // Fetch up to 5 pages (500 repos max) to get a "deep" view
+    // Fetch up to 5 pages in parallel
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let allRepos: any[] = [];
-    if (repoType === "all") {
-      // Authenticated user can use listForAuthenticatedUser to get private repos correctly
-      for (let i = 1; i <= 5; i++) {
-        const { data: pageRepos } = await octokit.rest.repos.listForAuthenticatedUser({
+
+    const pagePromises = [];
+    for (let i = 1; i <= 3; i++) { // Optimized: Reduced to 300 repos for speed
+      if (repoType === "all") {
+        pagePromises.push(octokit.rest.repos.listForAuthenticatedUser({
           sort: "pushed",
           per_page: 100,
           page: i,
           visibility: "all"
-        });
-        if (pageRepos.length === 0) break;
-        allRepos = allRepos.concat(pageRepos);
-      }
-    } else {
-      for (let i = 1; i <= 5; i++) {
-        const { data: pageRepos } = await octokit.rest.repos.listForUser({
+        }).then(res => res.data).catch(() => []));
+      } else {
+        pagePromises.push(octokit.rest.repos.listForUser({
           username,
           sort: "pushed",
           per_page: 100,
           page: i,
           type: "owner"
-        });
-        if (pageRepos.length === 0) break;
-        allRepos = allRepos.concat(pageRepos);
+        }).then(res => res.data).catch(() => []));
       }
     }
 
-    const repos = allRepos;
-
-    // 4. Get Organizations
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let organizations: any[] = [];
-    try {
-      const { data: orgs } = await octokit.rest.orgs.listForUser({ username });
-      organizations = orgs.map(o => ({ login: o.login, description: o.description }));
-    } catch {
-      console.warn("Failed to fetch organizations");
-    }
-
-    // 5. Get Social Accounts
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let socialAccounts: any[] = [];
-    try {
-      const { data: socials } = await octokit.rest.users.listSocialAccountsForUser({ username });
-      socialAccounts = socials.map(s => ({ provider: s.provider, url: s.url }));
-    } catch {
-      console.warn("Failed to fetch social accounts");
-    }
-
-    // 6. Try to get Profile README
-    let profileReadme = "";
-    try {
-      const { data: readmeContent } = await octokit.rest.repos.getReadme({
+    // 4. Fetch Auxiliary Data in Parallel with Repos
+    const [repoPages, orgsResult, socialsResult, readmeResult] = await Promise.all([
+      Promise.all(pagePromises),
+      octokit.rest.orgs.listForUser({ username }).catch(() => ({ data: [] })),
+      octokit.rest.users.listSocialAccountsForUser({ username }).catch(() => ({ data: [] })),
+      octokit.rest.repos.getReadme({
         owner: username,
         repo: username,
-        headers: {
-          accept: "application/vnd.github.raw+json",
-        },
-      });
-      profileReadme = readmeContent as unknown as string;
-    } catch {
-      // Profile README might not exist, ignore
-    }
+        headers: { accept: "application/vnd.github.raw+json" },
+      }).catch(() => ({ data: "" }))
+    ]);
+
+    allRepos = repoPages.flat();
+    const repos = allRepos;
+
+    // Process Auxiliary Data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const organizations: any[] = (orgsResult.data as any[]).map(o => ({ login: o.login, description: o.description }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const socialAccounts: any[] = (socialsResult.data as any[]).map(s => ({ provider: s.provider, url: s.url }));
+    const profileReadme = readmeResult.data as unknown as string;
 
     const languagesMap: Record<string, number> = {};
     let totalStars = 0;

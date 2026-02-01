@@ -82,6 +82,7 @@ export async function summarizeRepoBatch(repos: EnrichedRepo[]): Promise<RepoSum
       // If it's an object where values are the repos
       const values = Object.values(parsed);
       if (values.length > 0 && Array.isArray(values[0])) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         summaries = values[0] as any[];
       } else {
         summaries = values;
