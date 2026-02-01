@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getGitHubProfile } from '@/lib/github';
 import { getCompanies } from '@/lib/db';
-// import prisma from '@/lib/prisma'; // Deprecated
+import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createPortfolioAgent, recruiterMatcherAgent } from "@/lib/agents";
@@ -63,17 +63,21 @@ export async function POST(request: Request) {
     );
 
     // 5. Store Matches and Send Email
-    const matchData = matches.map(m => ({
+    // Only store/send if we have valid matches
+    const validMatches = matches.filter(m => m.matchScore > 0);
+    const matchData = validMatches.map(m => ({
       username: username || 'GUEST',
       companyName: m.name || 'Unknown Company',
       score: m.matchScore
     }));
 
     try {
-      // Upload to database (Skipped for JSON migration)
-      // await prisma.userMatch.createMany({
-      //   data: matchData
-      // });
+      // Upload to database
+      if (matchData.length > 0) {
+        await prisma.userMatch.createMany({
+          data: matchData
+        });
+      }
 
       // Send Email
       await sendMatchEmail(username || 'GUEST', matchData);

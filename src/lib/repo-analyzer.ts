@@ -1,12 +1,40 @@
 import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import { RepoSummary, EnrichedRepo } from '@/types';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// PLACEHOLDER: Attempt to use Claude API if available, fall back to OpenAI
+const getAIClient = () => {
+  // Try Claude first
+  if (process.env.CLAUDE_API_KEY) {
+    console.log('[AI] Using Claude API (Code Interpreter enabled)');
+    return new Anthropic({
+      apiKey: process.env.CLAUDE_API_KEY,
+    });
+  }
+
+  // Fall back to OpenAI
+  if (process.env.OPENAI_API_KEY) {
+    console.log('[AI] Using OpenAI API (Claude not available)');
+    return new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+
+  throw new Error("Missing both CLAUDE_API_KEY and OPENAI_API_KEY environment variables");
+};
+
+const getOpenAI = () => {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("Missing OPENAI_API_KEY environment variable");
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+};
 
 export async function summarizeRepoBatch(repos: EnrichedRepo[]): Promise<RepoSummary[]> {
   if (repos.length === 0) return [];
+  const openai = getOpenAI();
 
   const prompt = `
     You are a Technical Repository Analyzer. Analyze the following batch of GitHub repositories and provide a concise summary for each.
@@ -49,7 +77,7 @@ export async function summarizeRepoBatch(repos: EnrichedRepo[]): Promise<RepoSum
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       messages: [
         { role: "developer", content: "You are a technical analyzer. Output JSON only." },
         { role: "user", content: prompt }

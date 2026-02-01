@@ -4,24 +4,33 @@
     "name": "Marshall Wace",
     "logo": "/logos/MW.png",
     "industry": "Technology",
-    "description": "Culture(close knit)",
+    "description": "Marshall Wace is a global alternative manager specializing in low-latency and fundamental equity strategies. Our 'MW TOPS' system allows us to crowd-source trading ideas from sell-side contributors globally. We are 'lean by design', meaning every technology project has a direct, measurable business impact. We believe 'a man plus a machine beats a machine'.",
     "color": "#0578FE",
     "website": "https://www.mwam.com/join-us/",
     "languages": [
-      "Python C Cpp Java C# Rust everything"
+      "Python C Cpp Java C# Rust everything",
+      "C#",
+      "Python",
+      "Java",
+      "TypeScript"
     ],
     "frameworks": [
-      "Everything"
+      "Everything",
+      "React",
+      "Kafka",
+      "SQL Server",
+      "AWS",
+      ".NET Core"
     ],
     "skills": [
       "Communication empathy critical-thinking passion",
       "N/a"
     ],
     "experience": "See description",
-    "contributions": "Teamwork skills",
-    "lookingFor": "Teamwork skills",
+    "contributions": "We look for 'entrepreneurial technologists'. You should be ready to challenge consensus and drive change. We value full-stack capability—from understanding market data to building intuitive UI for PMs. Strong innovative spirit and integrity are required.",
+    "lookingFor": "We look for 'entrepreneurial technologists'. You should be ready to challenge consensus and drive change. We value full-stack capability—from understanding market data to building intuitive UI for PMs. Strong innovative spirit and integrity are required.",
     "compensation": "£80k - £200k + Performance Bonus (50-100%)",
-    "benefits": "- **Comparison-beating Compensation**: Top-tier base + distinct bonus structure.\n- **Health**: Fully paid medical, dental, vision.\n- **Perks**: On-site gym, catered meals (breakfast/lunch), learning allowance.\n- **Culture**: Meritocratic, flat structure, no silos.",
+    "benefits": "- **Innovation**: Work on the award-winning MW TOPS system.\n- **Ownership**: High autonomy in a flat, lean structure.\n- **Compensation**: Meritocratic pay connected to your direct impact.\n- **Wellness**: Comprehensive health, gym, and social events.",
     "locations": [
       "London",
       "New York",
@@ -82,17 +91,26 @@
     "name": "Hudson River Trading",
     "logo": "/logos/HRT.png",
     "industry": "Technology",
-    "description": "Hudson River Trading is a multi-asset class quantitative trading firm that provides liquidity on global markets and directly to our clients.",
+    "description": "Hudson River Trading is a multi-asset class quantitative trading firm that provides liquidity on global markets and directly to our clients.\n\nHRT is a math and technology company disguised as a trading firm. We are 'Code First'—managed by coders, for coders. Our culture ('MERIT') values intellect over politics. We have a casual, relaxed environment where brilliant minds work on solving the hardest problems in finance using scientific methods.",
     "color": "#5FECC8",
     "website": "https://www.hudsonrivertrading.com/careers/",
-    "languages": [],
-    "frameworks": [],
+    "languages": [
+      "C++",
+      "Python",
+      "OCaml"
+    ],
+    "frameworks": [
+      "Linux Kernel",
+      "React",
+      "Distributed Systems",
+      "FPGA"
+    ],
     "skills": [],
     "experience": "See description",
-    "contributions": "",
-    "lookingFor": "",
+    "contributions": "We hire 'Algo Developers', not just software engineers. You need strong C++17/20 skills and a deep understanding of OS internals and networking. We look for people who love low-level systems, distributed computing, and optimizing for nanoseconds.",
+    "lookingFor": "We hire 'Algo Developers', not just software engineers. You need strong C++17/20 skills and a deep understanding of OS internals and networking. We look for people who love low-level systems, distributed computing, and optimizing for nanoseconds.",
     "compensation": "$200k - $400k+ Total Comp (New Grad)",
-    "benefits": "- **Top of Market Pay**: Extremely competitive salary and bonuses.\n- **Meals**: Breakfast, lunch, and dinner provided daily.\n- **Office**: 'Play tank' with games, private terrace, gym.\n- **Health**: Premium health insurance, 100% covered premiums.",
+    "benefits": "- **Lifestyle**: Casual dress, chef-prepared meals, fully stocked kitchens.\n- **Health**: On-site gyms (NYC) and premium fitness benefits.\n- **Community**: Frequent tech talks, game nights, hackathons.\n- **Vacation**: Generous PTO and respectful work-life balance.",
     "locations": [
       "New York",
       "London",
@@ -113,17 +131,27 @@
     "name": "Jump Trading",
     "logo": "/logos/JT.png",
     "industry": "Technology",
-    "description": "We bring together brilliant minds in math, physics, and computer science to explore the edges of what’s possible and turn breakthrough research into real-world impact in global markets.",
+    "description": "We bring together brilliant minds in math, physics, and computer science to explore the edges of what’s possible and turn breakthrough research into real-world impact in global markets.\n\nJump Trading is a global research and technology-driven proprietary trading firm. We utilize advanced algorithms, high-performance computing, and massive datasets to trade across all major asset classes. Our culture combines the intellectual rigor of a research lab with the fast-paced intensity of a trading floor.",
     "color": "#D4B32F",
     "website": "https://www.jumptrading.com/careers/",
-    "languages": [],
-    "frameworks": [],
+    "languages": [
+      "C++",
+      "Python",
+      "Go"
+    ],
+    "frameworks": [
+      "Low-latency Linux",
+      "NumPy",
+      "Pandas",
+      "PyTorch",
+      "FPGA"
+    ],
     "skills": [],
     "experience": "See description",
-    "contributions": "",
-    "lookingFor": "",
+    "contributions": "We look for world-class problem solvers with deep expertise in C++, Python, and distributed systems. Candidates should thrive in a competitive environment, possess strong mathematical foundations, and demonstrate intellectual honesty. We value low-ego collaboration and improved outcomes over individual credit.",
+    "lookingFor": "We look for world-class problem solvers with deep expertise in C++, Python, and distributed systems. Candidates should thrive in a competitive environment, possess strong mathematical foundations, and demonstrate intellectual honesty. We value low-ego collaboration and improved outcomes over individual credit.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Elite Compensation**: Top-tier base + performance-based bonuses.\n- **Health**: Fully paid premium medical, dental, vision.\n- **Offices**: State-of-the-art workspaces in Chicago, NY, London, Singapore, Shanghai.\n- **Perks**: Catered meals, on-site gyms, casual dress code, continuous learning budget.",
     "locations": [],
     "roleTypes": []
   },
@@ -164,14 +192,23 @@
     "name": "Balyasny Asset Management",
     "logo": "/logos/B.svg",
     "industry": "Technology",
-    "description": "Top returns",
+    "description": "Balyasny Asset Management (BAM) is a diversified global investment firm. We are a community of over 1,500 professionals across 15 offices. We operate across all asset classes and strategies, leveraging deep fundamental research and advanced quantitative methods.",
     "color": "#C59D4A",
     "website": "https://www.bamfunds.com/careers",
     "languages": [
-      "Python java c++"
+      "Python java c++",
+      "Python",
+      "C++",
+      "C#",
+      "Java"
     ],
     "frameworks": [
-      "Pytorch"
+      "Pytorch",
+      "Pandas",
+      "AWS",
+      "Azure",
+      "React",
+      "Kubernetes"
     ],
     "skills": [
       "Research",
@@ -180,10 +217,10 @@
       "Maths"
     ],
     "experience": "See description",
-    "contributions": "Morals",
-    "lookingFor": "Morals",
+    "contributions": "We value 'BAM Standard'—excellence in everything we do. We look for strong technical talent in Python, C++, and Cloud Engineering to support our trading desks. You must be collaborative, adaptable, and results-oriented.",
+    "lookingFor": "We value 'BAM Standard'—excellence in everything we do. We look for strong technical talent in Python, C++, and Cloud Engineering to support our trading desks. You must be collaborative, adaptable, and results-oriented.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Compensation**: Competitive base + substantial performance bonuses.\n- **Growth**: BAM Institute for training, internal mobility opportunities.\n- **Wellness**: On-site medical, mental health resources, gym reimbursements.\n- **Community**: Philanthropic matching, employee resource groups.",
     "locations": [],
     "roleTypes": []
   },
@@ -192,17 +229,23 @@
     "name": "Optiver",
     "logo": "/logos/Opt.png",
     "industry": "Technology",
-    "description": "Collaborative culture, transparency",
+    "description": "Optiver is a leading global market maker with a mission to improve the market. We provide liquidity to financial markets using our own capital, at our own risk. Trading at the speed of light, we build sophisticated in-house software and connect to the world's major financial exchanges.",
     "color": "#BF37AD",
     "website": "https://optiver.com/working-at-optiver/",
     "languages": [
       "C++",
       "C",
       "Python",
-      "C#"
+      "C#",
+      "Java"
     ],
     "frameworks": [
-      "Any"
+      "Any",
+      "Linux",
+      "FPGA",
+      "React",
+      "Docker",
+      "Kubernetes"
     ],
     "skills": [
       "Strong ownership",
@@ -212,10 +255,10 @@
       "Strong design principles (simple is better!)"
     ],
     "experience": "See description",
-    "contributions": "",
-    "lookingFor": "",
+    "contributions": "We seek critical thinkers who enjoy complex problem solving. Whether you are a Trader, Researcher, or Engineer, you need a competitive spirit, rapid decision-making skills, and a collaborative mindset. We foster a flat culture where the best idea wins, regardless of seniority.",
+    "lookingFor": "We seek critical thinkers who enjoy complex problem solving. Whether you are a Trader, Researcher, or Engineer, you need a competitive spirit, rapid decision-making skills, and a collaborative mindset. We foster a flat culture where the best idea wins, regardless of seniority.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Profit Sharing**: Significant bonus potential based on firm performance.\n- **Lifestyle**: Breakfast, lunch, and dinner provided by in-house chefs.\n- **Wellness**: Weekly massages, free gym memberships, personal training.\n- **Global Mobility**: Opportunities to work in Amsterdam, Chicago, Sydney, London.",
     "locations": [],
     "roleTypes": []
   },
@@ -224,17 +267,27 @@
     "name": "Citadel",
     "logo": "/logos/Citadel.png",
     "industry": "Technology",
-    "description": "If you're ready to explore a career here, we're ready to hear from you. Find a role that helps you follow your passions and apply your skills.",
+    "description": "If you're ready to explore a career here, we're ready to hear from you. Find a role that helps you follow your passions and apply your skills.\n\nCitadel is one of the world's most profitable hedge funds, while Citadel Securities is a leading global market maker. We deploy capital to capture market opportunities with speed and precision. Our teams build and deploy powerful trading algorithms and systems that drive the global economy.",
     "color": "#FE9DB8",
     "website": "https://www.citadel.com/careers/",
-    "languages": [],
-    "frameworks": [],
+    "languages": [
+      "C++",
+      "Python",
+      "Slang"
+    ],
+    "frameworks": [
+      "Kubernetes",
+      "Kafka",
+      "React",
+      "Angular",
+      "Distributed Systems"
+    ],
     "skills": [],
     "experience": "See description",
-    "contributions": "",
-    "lookingFor": "",
+    "contributions": "We hire the top 1% of talent. You must be exceptionally driven, competitive, and technically brilliant. We value resilience, ownership, and the ability to deliver under pressure. Proficiency in modern C++ and distributed systems is often required for engineering roles.",
+    "lookingFor": "We hire the top 1% of talent. You must be exceptionally driven, competitive, and technically brilliant. We value resilience, ownership, and the ability to deliver under pressure. Proficiency in modern C++ and distributed systems is often required for engineering roles.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Top Compensation**: Industry-leading pay and bonuses.\n- **Perks**: Free catered meals, on-site medical concierge, museum passes.\n- **Growth**: Citadel University, unparalleled mentorship from industry veterans.\n- **Events**: Global offsites, team outings, hackathons.",
     "locations": [],
     "roleTypes": []
   },
@@ -243,17 +296,29 @@
     "name": "Wintermute",
     "logo": "/logos/WM.jpeg",
     "industry": "Technology",
-    "description": "The page you were looking for either does not exist or may have been movedPlease see if below links help you find what you are looking forHome pageWho we serveContact us...",
+    "description": "The page you were looking for either does not exist or may have been movedPlease see if below links help you find what you are looking forHome pageWho we serveContact us...\n\nWintermute is a leading algorithmic liquidity provider for digital assets. We create liquid and efficient markets on centralized and decentralized exchanges and trading platforms. We are a hyper-growth startup culture bridging the gap between traditional high-frequency trading and the crypto world.",
     "color": "#EE5A7E",
     "website": "https://www.wintermute.com/careers/",
-    "languages": [],
-    "frameworks": [],
+    "languages": [
+      "Python",
+      "Rust",
+      "TypeScript",
+      "Solidity",
+      "C++"
+    ],
+    "frameworks": [
+      "Web3.js",
+      "Ethers.js",
+      "React",
+      "Node.js",
+      "DeFi Protocols"
+    ],
     "skills": [],
     "experience": "See description",
-    "contributions": "",
-    "lookingFor": "",
+    "contributions": "We need crypto-native engineers and traders who love DeFi and Web3. You should be adaptable, entrepreneurial, and ready to ship code that handles billions in volume. Experience with Solidity, Rust, and Python is highly valued.",
+    "lookingFor": "We need crypto-native engineers and traders who love DeFi and Web3. You should be adaptable, entrepreneurial, and ready to ship code that handles billions in volume. Experience with Solidity, Rust, and Python is highly valued.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Ownership**: Equity options in a high-growth crypto unicorn.\n- **Culture**: Meritocratic, non-hierarchical, fast-paced choice of tech stack.\n- **Flexibility**: Hybrid work model, annual retreats, crypto-native perks.\n- **Health**: Private insurance, gym stipends.",
     "locations": [],
     "roleTypes": []
   },
@@ -262,16 +327,25 @@
     "name": "Qube Research & Technologies (QRT)",
     "logo": "/logos/QRT.svg",
     "industry": "Technology",
-    "description": "Flat structure, early careers hiring, lots of events and socials",
+    "description": "Flat structure, early careers hiring, lots of events and socials\n\nQRT is a global quantitative and systematic investment manager. We are a technology and data-driven organization applying a scientific approach to investing. Our culture is collaborative and research-heavy, blurring the lines between researchers, engineers, and traders. We operate as a 'machine-like' business where stability and automation are paramount.",
     "color": "#30922E",
     "website": "https://www.qube-rt.com/careers/",
     "languages": [
       "C sharp",
       "c++",
-      "python"
+      "python",
+      "C++",
+      "Python",
+      "Java",
+      "Go"
     ],
     "frameworks": [
-      "Not sure"
+      "Not sure",
+      "Docker",
+      "Kubernetes",
+      "Cassandra",
+      "React",
+      "AWS"
     ],
     "skills": [
       "Collaboration",
@@ -282,10 +356,10 @@
       "Kotlin"
     ],
     "experience": "See description",
-    "contributions": "Soft skills is key, leadership ability, passion",
-    "lookingFor": "Soft skills is key, leadership ability, passion",
+    "contributions": "Soft skills is key, leadership ability, passion\n\nWe need engineers who think like researchers. You should be comfortable with C++ and Python in a high-performance environment. We value intellectual curiosity and the ability to work across teams (infrastructure, data, research) without silos. Low-ego and high-collaboration are non-negotiable.",
+    "lookingFor": "Soft skills is key, leadership ability, passion\n\nWe need engineers who think like researchers. You should be comfortable with C++ and Python in a high-performance environment. We value intellectual curiosity and the ability to work across teams (infrastructure, data, research) without silos. Low-ego and high-collaboration are non-negotiable.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Culture**: Academic, collaborative, 'less cutthroat' than competitors.\n- **Growth**: Flat structure with direct access to senior leadership.\n- **Perks**: Modern offices, strong work-life balance support for the industry.\n- **Tech**: Access to massive compute clusters and proprietary data sets.",
     "locations": [],
     "roleTypes": []
   },
@@ -294,17 +368,27 @@
     "name": "JetBrains",
     "logo": "/logos/JB.png",
     "industry": "Technology",
-    "description": "How to Apply: If you find a role that fits your background and aspirations, tell us about yourself in your application.",
+    "description": "How to Apply: If you find a role that fits your background and aspirations, tell us about yourself in your application.\n\nJetBrains creates intelligent software development tools used by over 10 million professionals. We are the creators of IntelliJ IDEA, PyCharm, and the Kotlin programming language. Our tools automate routine checks and corrections, allowing developers to focus on the creative side of software engineering.",
     "color": "#05A416",
     "website": "https://www.jetbrains.com/careers/",
-    "languages": [],
-    "frameworks": [],
+    "languages": [
+      "Java",
+      "Kotlin",
+      "C#",
+      "C++"
+    ],
+    "frameworks": [
+      "Swing",
+      "Compose Multiplatform",
+      "IntelliJ Platform",
+      "Ktor"
+    ],
     "skills": [],
     "experience": "See description",
-    "contributions": "",
-    "lookingFor": "",
+    "contributions": "We look for passionate engineers who care deeply about developer experience. If you love building tools, compilers, or IDE plugins, this is the place. We value autonomy, craftsmanship, and 'eating your own dog food'—using our tools to build our tools.",
+    "lookingFor": "We look for passionate engineers who care deeply about developer experience. If you love building tools, compilers, or IDE plugins, this is the place. We value autonomy, craftsmanship, and 'eating your own dog food'—using our tools to build our tools.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Freedom**: Flexible schedules, remote-friendly culture.\n- **Learning**: Hackathons, 20% time for personal projects, conference budgets.\n- **Wellbeing**: Ergonomic workspaces, health insurance, free lunches.\n- **Impact**: Your work directly improves the lives of millions of developers.",
     "locations": [],
     "roleTypes": []
   },
@@ -338,17 +422,26 @@
     "name": "Anthropic",
     "logo": "/logos/Anthr.svg",
     "industry": "Technology",
-    "description": "Anthropic is an AI safety and research company that's working to build reliable, interpretable, and steerable AI systems.",
+    "description": "Anthropic is an AI safety and research company that's working to build reliable, interpretable, and steerable AI systems.\n\nAnthropic is an AI safety and research company. We build reliable, interpretable, and steerable AI systems, including Claude. Our mission is to ensure transformative AI helps people and society flourish.",
     "color": "#66EF4C",
     "website": "https://www.anthropic.com/careers/",
-    "languages": [],
-    "frameworks": [],
+    "languages": [
+      "Python",
+      "Rust"
+    ],
+    "frameworks": [
+      "PyTorch",
+      "JAX",
+      "Kubernetes",
+      "React",
+      "AWS"
+    ],
     "skills": [],
     "experience": "See description",
-    "contributions": "",
-    "lookingFor": "",
+    "contributions": "We seek researchers and engineers who care deeply about AI safety and alignment. You should be expert in deep learning scaling, large language models, or interpretability. A strong moral compass and ability to work on open-ended research problems are essential.",
+    "lookingFor": "We seek researchers and engineers who care deeply about AI safety and alignment. You should be expert in deep learning scaling, large language models, or interpretability. A strong moral compass and ability to work on open-ended research problems are essential.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Mission-Driven**: Work on the frontier of AI alignment.\n- **Compensation**: Top-tier tech salaries and equity.\n- **Environment**: Collaborative research culture, focus on long-term safety.\n- **Perks**: Catered meals, unlimited PTO, comprehensive health/dental.",
     "locations": [],
     "roleTypes": []
   },
@@ -357,17 +450,28 @@
     "name": "Goodnotes",
     "logo": "/logos/GN.jpg",
     "industry": "Technology",
-    "description": "Discover Goodnotes, the AI note-taking app loved by millions around the world.",
+    "description": "Discover Goodnotes, the AI note-taking app loved by millions around the world.\n\nGoodnotes is the world's most popular digital paper app. We are reimagining how people take notes, study, and collaborate. AI is at the core of our future, transforming handwriting into structured knowledge.",
     "color": "#57DC04",
     "website": "https://www.goodnotes.com/careers/",
-    "languages": [],
-    "frameworks": [],
+    "languages": [
+      "Swift",
+      "Objective-C",
+      "C++",
+      "Python"
+    ],
+    "frameworks": [
+      "UIKit",
+      "SwiftUI",
+      "CoreML",
+      "Metal",
+      "React"
+    ],
     "skills": [],
     "experience": "See description",
-    "contributions": "",
-    "lookingFor": "",
+    "contributions": "We want engineers who are user-obsessed and love iOS/Apple ecosystems. Experience with Swift, Computer Vision, or ML on the edge is a huge plus. We value craftsmanship and attention to detail in UI/UX.",
+    "lookingFor": "We want engineers who are user-obsessed and love iOS/Apple ecosystems. Experience with Swift, Computer Vision, or ML on the edge is a huge plus. We value craftsmanship and attention to detail in UI/UX.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Impact**: Best-in-class product used by millions of students and pros.\n- **Culture**: Remote-friendly, asynchronous work, diversity-focused.\n- **Perks**: Home office stipend, wellness budget, annual team offsites.\n- **Tech**: Work with latest Apple frameworks and ML technologies.",
     "locations": [],
     "roleTypes": []
   },
@@ -376,15 +480,23 @@
     "name": "Palmify",
     "logo": "/logos/Palm.png",
     "industry": "Technology",
-    "description": "Student led startup, not office rats",
+    "description": "Palmify is a forward-thinking student-led startup focused on AI-powered digital transformation. We are a remote-first, decentralized team of 'crypto-natives' and AI enthusiasts. We reject the 'office rat' culture in favor of global, asynchronous collaboration.",
     "color": "#9DA66A",
     "website": "",
     "languages": [
-      "Typescript"
+      "Typescript",
+      "TypeScript",
+      "Python",
+      "Solidity"
     ],
     "frameworks": [
       "Neo4j",
-      "next.js"
+      "next.js",
+      "Next.js",
+      "React",
+      "Vercel",
+      "OpenAI API",
+      "TailwindCSS"
     ],
     "skills": [
       "Resilient",
@@ -393,10 +505,10 @@
       "Cybersecurity"
     ],
     "experience": "See description",
-    "contributions": "N/a",
-    "lookingFor": "N/a",
+    "contributions": "We are looking for self-starters who love AI agents, Web3, and building products from scratch. You should be comfortable with Next.js, Vercel, and integrating LLMs. We want 'builders' who can ship fast and iterate based on user feedback.",
+    "lookingFor": "We are looking for self-starters who love AI agents, Web3, and building products from scratch. You should be comfortable with Next.js, Vercel, and integrating LLMs. We want 'builders' who can ship fast and iterate based on user feedback.",
     "compensation": "",
-    "benefits": "",
+    "benefits": "- **Flexibility**: Fully remote, work from anywhere.\n- **Ownership**: High impact in a small, fast-moving team.\n- **Tech**: Work with bleeding-edge AI and Crypto tech stacks.\n- **Culture**: Youthful, energetic, and rule-breaking.",
     "locations": [],
     "roleTypes": []
   }

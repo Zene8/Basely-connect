@@ -1,9 +1,55 @@
 import { Octokit } from "octokit";
 import { analyzeAllRepos } from "./repo-analyzer";
 
+// Helper for exponential backoff retry - FAIL FAST on Rate Limit as requested
+async function withRetry<T>(fn: () => Promise<T>, retries = 2, delay = 1000): Promise<T> {
+  try {
+    return await fn();
+  } catch (error: any) {
+    // Fail Fast on Rate Limits (Quota Exhausted)
+    if (error.status === 403 || error.status === 429) {
+      console.error(`[GITHUB] Rate Limit Exceeded (Status ${error.status}). Failing immediately.`);
+      throw new Error("GitHub API Rate Limit Exceeded. Please try again later or provide a token.");
+    }
+
+    if (retries > 0) {
+      const waitTime = delay * 2;
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      return withRetry(fn, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+}
+
+// Helper to chunk requests for concurrency control
+async function chunkedPromiseAll<T, R>(
+  items: T[],
+  fn: (item: T) => Promise<R>,
+  chunkSize = 5
+): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk.map(fn));
+    results.push(...chunkResults);
+  }
+  return results;
+}
+
+const GITHUB_CACHE = new Map<string, { data: any, timestamp: number }>();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
 export async function getGitHubProfile(username: string, accessToken?: string) {
   if (!username) {
     throw new Error("GitHub username is required");
+  }
+
+  // 0. Check Cache
+  const cacheKey = `${username}_${accessToken ? 'auth' : 'public'}`;
+  const cached = GITHUB_CACHE.get(cacheKey);
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    console.log(`[GITHUB] Using cached profile for ${username}`);
+    return cached.data;
   }
 
   const octokit = new Octokit({
@@ -14,76 +60,70 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let user: any = null;
 
-    // 1. Try to get authenticated user if token exists
-    if (accessToken) {
-      try {
-        const { data: authUser } = await octokit.rest.users.getAuthenticated();
-        if (authUser.login.toLowerCase() === username.toLowerCase()) {
-          user = authUser;
-        }
-      } catch (e) {
-        console.warn("Token validation failed, falling back to public request", e);
-      }
-    }
+    // 1. Try to get user info - Optimize to avoid /user if possible
+    // If we have an accessToken and it's the same user as the username,
+    // we still need some info like bio, public_repos etc which might not be in the token.
+    // However, we can try to get it via getByUsername even if authenticated to save quota on /user
 
-    // 2. Fallback to public user info
-    if (!user) {
-      const { data: publicUser } = await octokit.rest.users.getByUsername({ username });
+    try {
+      const { data: publicUser } = await withRetry(() => octokit.rest.users.getByUsername({ username }));
       user = publicUser;
+    } catch (e) {
+      console.warn(`Failed to fetch user info for ${username}`, e);
+      if (accessToken) {
+        // Last resort for authenticated user
+        const { data: authUser } = await withRetry(() => octokit.rest.users.getAuthenticated());
+        user = authUser;
+      }
     }
 
     if (!user) {
       throw new Error(`User ${username} not found on GitHub`);
     }
 
-    // 3. Get repositories (Deep Fetch) in Parallel
-    // Note: 'all' type is only valid for authenticated user. 
-    // For other users, we use 'owner'.
+    // 2. Determine repo type
     const repoType = (accessToken && user.login.toLowerCase() === username.toLowerCase()) ? "all" : "owner";
 
-    // Fetch up to 5 pages in parallel
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let allRepos: any[] = [];
-
+    // 3. Get repositories (Optimized fetch)
+    // Fetch up to 2 pages (200 repos) - 300 might be overkill and slow down
     const pagePromises = [];
-    for (let i = 1; i <= 3; i++) { // Optimized: Reduced to 300 repos for speed
+    const maxPages = 2;
+    for (let i = 1; i <= maxPages; i++) {
       if (repoType === "all") {
-        pagePromises.push(octokit.rest.repos.listForAuthenticatedUser({
+        pagePromises.push(withRetry(() => octokit.rest.repos.listForAuthenticatedUser({
           sort: "pushed",
           per_page: 100,
           page: i,
           visibility: "all"
-        }).then(res => res.data).catch(() => []));
+        })).then(res => res.data).catch(() => []));
       } else {
-        pagePromises.push(octokit.rest.repos.listForUser({
+        pagePromises.push(withRetry(() => octokit.rest.repos.listForUser({
           username,
           sort: "pushed",
           per_page: 100,
           page: i,
           type: "owner"
-        }).then(res => res.data).catch(() => []));
+        })).then(res => res.data).catch(() => []));
       }
     }
 
-    // 4. Fetch Auxiliary Data in Parallel with Repos
+    // 4. Fetch Auxiliary Data in Parallel
     const [repoPages, orgsResult, socialsResult, readmeResult] = await Promise.all([
       Promise.all(pagePromises),
-      octokit.rest.orgs.listForUser({ username }).catch(() => ({ data: [] })),
-      octokit.rest.users.listSocialAccountsForUser({ username }).catch(() => ({ data: [] })),
-      octokit.rest.repos.getReadme({
+      withRetry(() => octokit.rest.orgs.listForUser({ username })).catch(() => ({ data: [] })),
+      withRetry(() => octokit.rest.users.listSocialAccountsForUser({ username })).catch(() => ({ data: [] })),
+      withRetry(() => octokit.rest.repos.getReadme({
         owner: username,
         repo: username,
         headers: { accept: "application/vnd.github.raw+json" },
-      }).catch(() => ({ data: "" }))
+      })).catch(() => ({ data: "" }))
     ]);
 
-    allRepos = repoPages.flat();
+    const allRepos = repoPages.flat();
     const repos = allRepos;
 
     // Process Auxiliary Data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const organizations: any[] = (orgsResult.data as any[]).map(o => ({ login: o.login, description: o.description }));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const socialAccounts: any[] = (socialsResult.data as any[]).map(s => ({ provider: s.provider, url: s.url }));
     const profileReadme = readmeResult.data as unknown as string;
 
@@ -99,93 +139,72 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       totalSize += repo.size || 0;
     }
 
-    // 7. Fetch Collaborators, Languages, and Frameworks for top 25 repos
-    const enrichedRepos = await Promise.all(repos.slice(0, 25).map(async (r) => {
+    // 5. Deep Analysis for top repositories (Limited to 8 for speed and quota)
+    const enrichedRepos = await chunkedPromiseAll(repos.slice(0, 8), async (r) => {
       let collaborators: string[] = [];
       let repoLanguages: Record<string, number> = {};
       const frameworks: string[] = [];
 
+      // Skip heavy calls if possible
       try {
-        // Only fetch collaborators if user is owner/admin
         if (r.permissions?.push || r.permissions?.admin) {
-          const { data: collabs } = await octokit.rest.repos.listCollaborators({
+          const { data: collabs } = await withRetry(() => octokit.rest.repos.listCollaborators({
             owner: r.owner.login,
             repo: r.name,
-            per_page: 10
-          });
+            per_page: 5 // Reduced from 10
+          }));
           collaborators = collabs.map(c => c.login);
         }
-      } catch {
-        // Might fail if token doesn't have enough scope or other reasons
-        console.warn(`Failed to fetch collaborators for ${r.name}`);
-      }
+      } catch (e) { }
 
       try {
-        const { data: langs } = await octokit.rest.repos.listLanguages({
+        const { data: langs } = await withRetry(() => octokit.rest.repos.listLanguages({
           owner: r.owner.login,
           repo: r.name
-        });
+        }));
         repoLanguages = langs;
-      } catch {
-        console.warn(`Failed to fetch languages for ${r.name}`);
-      }
+      } catch (e) { }
 
-      // Try to detect frameworks/libraries by checking key files
-      // If a repo is empty or otherwise inaccessible, we skip content-based detection
-      if (r.size > 0) {
+      // Optimized framework detection
+      if ((r.size || 0) > 0) {
         try {
-          const { data: contents } = await octokit.rest.repos.getContent({
+          const { data: contents } = await withRetry(() => octokit.rest.repos.getContent({
             owner: r.owner.login,
             repo: r.name,
             path: ""
-          });
+          }));
 
           if (Array.isArray(contents)) {
             const filenames = contents.map(f => f.name);
-
-            // Basic framework detection by filename
             if (filenames.includes('package.json')) frameworks.push('Node.js');
             if (filenames.includes('next.config.js') || filenames.includes('next.config.mjs')) frameworks.push('Next.js');
             if (filenames.includes('tailwind.config.js')) frameworks.push('TailwindCSS');
             if (filenames.includes('tsconfig.json')) frameworks.push('TypeScript');
-            if (filenames.includes('requirements.txt') || filenames.includes('pyproject.toml')) frameworks.push('Python');
-            if (filenames.includes('Gemfile')) frameworks.push('Ruby');
             if (filenames.includes('go.mod')) frameworks.push('Go');
             if (filenames.includes('Cargo.toml')) frameworks.push('Rust');
             if (filenames.includes('docker-compose.yml') || filenames.includes('Dockerfile')) frameworks.push('Docker');
 
-            // Deep scan package.json if it exists
-            if (filenames.includes('package.json')) {
+            // Only fetch package.json for top 5 repos to save calls
+            if (filenames.includes('package.json') && repos.indexOf(r) < 5) {
               try {
-                const { data: pkgData } = await octokit.rest.repos.getContent({
+                const { data: pkgData } = await withRetry(() => octokit.rest.repos.getContent({
                   owner: r.owner.login,
                   repo: r.name,
                   path: "package.json",
                   headers: { accept: "application/vnd.github.raw+json" }
-                });
-
+                }));
                 const pkg = JSON.parse(pkgData as unknown as string);
                 const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
-
-                const majorLibs = [
-                  'react', 'vue', 'angular', 'svelte', 'express', 'prisma', 'sequelize',
-                  'mongoose', 'redux', 'mobx', 'jest', 'cypress', 'vite', 'webpack',
-                  'firebase', 'supabase', 'trpc', 'query', 'graphql', 'apollo'
-                ];
-
+                const majorLibs = ['react', 'vue', 'angular', 'svelte', 'express', 'prisma', 'supabase', 'graphql'];
                 majorLibs.forEach(lib => {
                   if (allDeps[lib] || Object.keys(allDeps).some(k => k.includes(lib))) {
                     frameworks.push(lib.charAt(0).toUpperCase() + lib.slice(1));
                   }
                 });
-              } catch {
-                // package.json might be missing or invalid
-              }
+              } catch { }
             }
           }
-        } catch {
-          // Silent fail for content fetch - assume empty or inaccessible
-        }
+        } catch { }
       }
 
       return {
@@ -196,23 +215,22 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
         url: r.html_url,
         topics: r.topics || [],
         isPrivate: r.private,
-        updatedAt: r.updated_at,
-        size: r.size,
+        updatedAt: r.updated_at || null,
+        size: r.size || 0,
         owner: r.owner.login,
         collaborators,
         repoLanguages,
-        frameworks: Array.from(new Set(frameworks)) // unique values
+        frameworks: Array.from(new Set(frameworks))
       };
-    }));
+    }, 4);
 
     const topLanguages = Object.entries(languagesMap)
       .sort(([, a], [, b]) => b - a)
       .map(([lang]) => lang);
 
-    // 8. Analyze and Summarize Repositories
     const repoSummaries = await analyzeAllRepos(enrichedRepos);
 
-    return {
+    const result = {
       username: user.login,
       name: user.name || "",
       bio: user.bio || "",
@@ -232,8 +250,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       socialAccounts,
       profileReadme,
       repoSummaries,
-      deepTechStack: [],
-      repos: enrichedRepos.concat(repos.slice(25, 40).map(r => ({
+      repos: enrichedRepos.concat(repos.slice(enrichedRepos.length, 25).map(r => ({
         name: r.name,
         description: r.description || "",
         language: r.language || "Unknown",
@@ -241,8 +258,8 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
         url: r.html_url,
         topics: r.topics || [],
         isPrivate: r.private,
-        updatedAt: r.updated_at,
-        size: r.size,
+        updatedAt: r.updated_at || null,
+        size: r.size || 0,
         owner: r.owner.login,
         collaborators: [],
         repoLanguages: {},
@@ -250,7 +267,11 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       })))
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Store in Cache
+    GITHUB_CACHE.set(cacheKey, { data: result, timestamp: Date.now() });
+
+    return result;
+
   } catch (error: any) {
     console.error(`GitHub API Error for ${username}:`, error.message, error.status);
     if (error.status === 404) {
