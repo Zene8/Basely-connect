@@ -16,15 +16,17 @@ export default function Home() {
   const [matches, setMatches] = useState<CompanyMatch[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [availableCompanies, setAvailableCompanies] = useState<any[]>([]);
+  const [fileName, setFileName] = useState('');
   const [activeStep, setActiveStep] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
   const [githubProfile, setGithubProfile] = useState<any>(null);
 
-  // New Preferences State
+  // Preferences State
   const [preferredIndustries, setPreferredIndustries] = useState<string[]>([]);
   const [additionalContext, setAdditionalContext] = useState('');
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
 
-  // Fetch available companies for preview
+  // Fetch available companies
   useEffect(() => {
     fetch('/api/companies')
       .then(res => res.json())
@@ -36,11 +38,11 @@ export default function Home() {
       .catch(err => console.error("Failed to fetch companies:", err));
   }, []);
 
-  // Fetch GitHub Profile when session exists
+  // Sync GitHub Profile
   useEffect(() => {
     const fetchProfile = async () => {
       // @ts-ignore
-      const username = session?.user?.username;
+      const username = session?.user?.username || session?.user?.name;
       if (username) {
         try {
           const res = await fetch('/api/analyze', {
@@ -58,20 +60,31 @@ export default function Home() {
     if (session) fetchProfile();
   }, [session]);
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+       const text = event.target?.result;
+       if (typeof text === 'string') setResumeText(text);
+    };
+    reader.readAsText(file);
+  };
+
   const handleMatch = async () => {
-    // @ts-expect-error session user typing mismatch
+    // @ts-ignore
     const username = session?.user?.username || session?.user?.name;
     if (!username) {
       signIn('github');
       return;
     }
-
+    
     setIsLoading(true);
     setMatches([]);
     setActiveStep(1);
 
     try {
-      // Step 1: Scanning (Animation)
       await new Promise(r => setTimeout(r, 1200));
       setActiveStep(2);
 
@@ -79,7 +92,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username,
+          username, 
           statement,
           resumeText,
           excludedCompanyIds: excludedIds,
@@ -87,10 +100,9 @@ export default function Home() {
           additionalContext
         })
       });
-
+      
       const data = await res.json();
-
-      // Step 2: Analysis (Animation)
+      
       await new Promise(r => setTimeout(r, 1500));
       setActiveStep(3);
 
@@ -100,9 +112,8 @@ export default function Home() {
           document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       }
-
+      
       await new Promise(r => setTimeout(r, 800));
-
     } catch (error) {
       console.error(error);
     } finally {
@@ -134,9 +145,9 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen relative bg-[#0a0a0c] text-white">
+    <main className="min-h-screen relative bg-[#0a0a0c]">
       
-      {/* LOADING OVERLAY */}
+      {/* LOADING OVERLAY (Runtime Status) */}
       {isLoading && (
         <div className="fixed inset-0 z-50 bg-[#0a0a0c]/90 backdrop-blur-md flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-basely-navy border border-gray-800 rounded-lg p-10 font-mono shadow-2xl">
@@ -164,9 +175,10 @@ export default function Home() {
              </div>
 
              <div className="mt-12 pt-8 border-t border-gray-800">
-                <div className="flex justify-between text-[10px] text-gray-500 mb-2">
-                   <span>NEURAL_ENGINE</span>
-                   <span>GPT-4O-MINI</span>
+                <div className="flex justify-between text-[10px] text-gray-500 mb-2 font-mono">
+                   <span>SUBJECT_TOKEN</span>
+                   {/* @ts-ignore */}
+                   <span className="text-white truncate max-w-[150px]">{session?.user?.username || session?.user?.name}</span>
                 </div>
                 <div className="w-full bg-gray-900 h-1 rounded-full overflow-hidden">
                    <div 
@@ -179,133 +191,175 @@ export default function Home() {
         </div>
       )}
 
-      {/* HEADER */}
-      <nav className="fixed top-0 w-full z-40 bg-[#0a0a0c]/50 backdrop-blur-lg border-b border-gray-900 px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Image src="/BaselyLogo.png" alt="Basely" width={28} height={28} className="rounded" />
-          <div className="flex flex-col leading-none">
-            <span className="font-bold text-sm tracking-tight">Basely</span>
-            <span className="text-cyan-500 font-mono text-[8px] uppercase tracking-widest font-bold">Connect</span>
-          </div>
+      {/* ORIGINAL BRANDING HEADER */}
+      <div className="absolute top-8 left-8 z-20 flex items-center gap-3">
+        <Image src="/BaselyLogo.png" alt="Basely Logo" width={32} height={32} className="rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.3)]" />
+        <div className="flex flex-col leading-none">
+          <span className="text-[#fafafa] font-bold text-lg tracking-tight">Basely</span>
+          <span className="text-cyan-400 font-mono text-[10px] tracking-[0.2em] uppercase font-bold opacity-80">Connect</span>
         </div>
-        
-        <div>
-          {session ? (
-            <div className="flex items-center gap-4">
-               <span className="text-xs text-gray-400 font-mono hidden sm:block">@{ (session.user as any).username }</span>
-               <button onClick={() => signOut()} className="w-8 h-8 rounded-full overflow-hidden border border-gray-800 hover:border-cyan-500 transition-colors">
-                  <img src={session.user?.image || ''} alt="User" className="w-full h-full object-cover" />
-               </button>
+      </div>
+
+      {/* ORIGINAL AUTH ACTION (Top Right) */}
+      <div className="absolute top-8 right-8 z-20">
+        {session ? (
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex flex-col items-end">
+              <span className="text-[#fafafa] text-xs font-medium">{session.user?.name}</span>
+              <button onClick={() => signOut()} className="text-[10px] text-cyan-400 hover:text-cyan-300 uppercase tracking-widest font-bold font-mono">Disconnect</button>
             </div>
-          ) : (
-            <button onClick={() => signIn('github')} className="text-xs font-mono uppercase tracking-widest text-cyan-500 hover:text-white transition-colors">
-              [Connect_Identity]
-            </button>
-          )}
-        </div>
-      </nav>
+            <img 
+              src={session.user?.image || ''} 
+              alt="Profile" 
+              className="w-10 h-10 rounded-full border border-basely-orange/30 shadow-[0_0_10px_rgba(255,107,53,0.2)]"
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => signIn('github')}
+            className="px-6 py-2.5 rounded bg-basely-navy border border-basely-orange/20 hover:border-basely-orange/50 transition-all text-[#fafafa] text-xs font-bold uppercase tracking-widest font-mono"
+          >
+            Connect Identity
+          </button>
+        )}
+      </div>
 
-      <div className="container mx-auto px-6 pt-32 pb-20">
+      <div className="container mx-auto px-6">
         
-        {/* TOP SECTION: PROFILE & PREFERENCES */}
-        <div className="grid lg:grid-cols-12 gap-8 mb-12">
+        {/* ORIGINAL HERO SECTION */}
+        <section className="pt-40 pb-20 text-center max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded bg-basely-navy/50 border border-basely-orange/20 text-basely-orange text-[11px] font-bold uppercase tracking-widest mb-8 animate-slideUp">
+            <span className="w-1.5 h-1.5 rounded-full bg-basely-orange animate-pulse shadow-[0_0_8px_rgba(255,107,53,0.8)]" />
+            Matching Protocol v1.0
+          </div>
           
-          {/* LEFT: YOUR PROFILE (5/12) */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="bg-basely-navy/30 border border-gray-800 rounded-xl p-8 h-full">
-              <h3 className="text-white font-bold mb-8 flex items-center gap-3">
-                <span className="w-8 h-8 rounded bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500 text-xs">01</span>
-                Your Profile
-              </h3>
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight leading-[1.1] animate-slideUp">
+            The Bridge to Your 
+            <br />
+            <span className="title-gradient">Technical Future.</span>
+          </h1>
+          
+          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-16 leading-relaxed font-light animate-slideUp">
+            Basely.Connect cross-references your engineering footprint with high-growth technical teams to find your optimal semantic fit.
+          </p>
 
-              {session ? (
-                <div className="space-y-6">
-                  {githubProfile ? (
-                    <div className="animate-fadeIn">
-                       <div className="flex items-center gap-4 mb-6">
-                          <div className="flex-1">
-                             <h4 className="text-lg font-bold">{githubProfile.name}</h4>
-                             <p className="text-xs text-gray-500 font-mono">{githubProfile.location || 'Global Citizen'}</p>
-                          </div>
-                          <div className="text-right">
-                             <p className="text-2xl font-bold text-cyan-500">{githubProfile.totalRepos}</p>
-                             <p className="text-[10px] text-gray-600 font-mono uppercase">Repositories</p>
-                          </div>
-                       </div>
-                       
-                       <div className="space-y-4">
-                          <div>
-                            <p className="text-[10px] text-gray-600 font-mono uppercase mb-2">Top Languages</p>
-                            <div className="flex flex-wrap gap-2">
-                               {githubProfile.languages?.slice(0, 5).map((l: string) => (
-                                 <span key={l} className="px-2 py-1 bg-gray-900 border border-gray-800 rounded text-[10px] font-mono text-gray-400">{l}</span>
-                               ))}
-                            </div>
-                          </div>
-                          
-                          <div className="pt-4">
-                            <label className="block text-[10px] text-gray-600 font-mono uppercase mb-2">Professional Intent</label>
-                            <textarea 
-                              value={statement}
-                              onChange={(e) => setStatement(e.target.value)}
-                              placeholder="e.g. Seeking high-frequency trading infra roles..."
-                              className="w-full bg-black/40 border border-gray-800 rounded-lg p-3 text-xs text-gray-300 focus:outline-none focus:border-cyan-500 transition-all h-24 resize-none font-mono"
-                            />
-                          </div>
-                       </div>
+          <div className="flex flex-col items-center gap-6 animate-slideUp">
+            <div className="grid md:grid-cols-2 gap-8 text-left w-full">
+              
+              {/* NEW SECTION 01: YOUR PROFILE (Replacing Ingestion) */}
+              <div className="bg-basely-navy/30 border border-basely-orange/15 rounded-lg p-1 overflow-hidden group hover:border-basely-orange/40 transition-all min-h-[500px]">
+                <div className="bg-basely-dark rounded p-8 h-full flex flex-col">
+                  <h3 className="text-white font-bold mb-8 flex items-center gap-3">
+                    <span className="text-basely-orange font-mono text-sm">01</span>
+                    Your Profile
+                  </h3>
+
+                  {!session ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 px-4">
+                      <p className="text-xs text-gray-500 font-mono leading-relaxed">Connect your GitHub identity to automatically populate your technical profile.</p>
+                      <button onClick={() => signIn('github')} className="px-6 py-3 bg-white text-black font-bold text-[10px] uppercase tracking-widest rounded hover:bg-basely-orange hover:text-white transition-all font-mono">
+                        Sync Identity
+                      </button>
                     </div>
                   ) : (
-                    <div className="py-12 flex flex-col items-center gap-4 opacity-50">
-                       <div className="w-6 h-6 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
-                       <p className="text-[10px] font-mono uppercase tracking-widest">Syncing_GitHub_Data</p>
+                    <div className="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-2">
+                       {githubProfile ? (
+                         <div className="animate-fadeIn space-y-6">
+                            <div className="flex items-center gap-4">
+                               <div className="flex-1">
+                                  <h4 className="text-lg font-bold text-white">{githubProfile.name}</h4>
+                                  <p className="text-xs text-gray-500 font-mono uppercase tracking-tighter">{githubProfile.location || 'Global Citizen'}</p>
+                               </div>
+                               <div className="text-right">
+                                  <p className="text-2xl font-bold text-basely-orange">{githubProfile.totalRepos}</p>
+                                  <p className="text-[9px] text-gray-600 font-mono uppercase">Repos</p>
+                               </div>
+                            </div>
+
+                            <div>
+                               <label className="block text-[10px] text-gray-600 font-mono uppercase tracking-widest mb-3">Top Signal Overlap</label>
+                               <div className="flex flex-wrap gap-2">
+                                  {githubProfile.languages?.slice(0, 6).map((l: string) => (
+                                    <span key={l} className="px-2 py-1 bg-basely-navy/50 border border-gray-800 rounded text-[10px] font-mono text-gray-400">{l}</span>
+                                  ))}
+                               </div>
+                            </div>
+
+                            <div>
+                               <label className="block text-[10px] text-gray-600 font-mono uppercase tracking-widest mb-2">Resume Artifact (.txt)</label>
+                               <div className="relative group/upload">
+                                  <input type="file" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                                  <div className={`p-3 border border-dashed rounded flex items-center gap-3 transition-all ${fileName ? 'border-basely-orange bg-basely-orange/5' : 'border-gray-800 bg-black/20 group-hover:border-basely-orange/50'}`}>
+                                     <span className="text-sm">📄</span>
+                                     <span className="text-[10px] text-gray-400 font-mono truncate">{fileName || "SELECT_SOURCE"}</span>
+                                  </div>
+                               </div>
+                            </div>
+
+                            <div>
+                               <label className="block text-[10px] text-gray-600 font-mono uppercase tracking-widest mb-2">Intent Statement</label>
+                               <textarea 
+                                 value={statement}
+                                 onChange={(e) => setStatement(e.target.value)}
+                                 placeholder="// Seeking low-latency infra roles..."
+                                 className="w-full bg-black/40 border border-gray-800 rounded-lg p-3 text-xs text-gray-300 focus:outline-none focus:border-basely-orange transition-all h-24 resize-none font-mono"
+                               />
+                            </div>
+                         </div>
+                       ) : (
+                         <div className="py-20 flex flex-col items-center gap-4 opacity-50">
+                            <div className="w-6 h-6 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-[10px] font-mono uppercase tracking-widest">Parsing_Distributed_Nodes</p>
+                         </div>
+                       )}
                     </div>
                   )}
-                </div>
-              ) : (
-                <div className="py-20 text-center space-y-6">
-                  <p className="text-xs text-gray-500 font-mono leading-relaxed px-8">Connect your GitHub identity to automatically populate your technical profile.</p>
-                  <button onClick={() => signIn('github')} className="px-6 py-3 bg-white text-black font-bold text-xs uppercase tracking-widest rounded hover:bg-cyan-500 hover:text-white transition-all">
-                    Sync Identity
+
+                  <button 
+                    onClick={handleMatch}
+                    disabled={isLoading || !session}
+                    className="mt-6 w-full py-4 bg-basely-orange hover:bg-orange-500 disabled:bg-gray-800 disabled:text-gray-600 text-white font-bold text-xs tracking-widest uppercase rounded shadow-[0_0_15px_rgba(255,107,53,0.3)] transition-all flex items-center justify-center gap-3 font-mono"
+                  >
+                    Compute Affinity Score
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          {/* RIGHT: SEARCH PREFERENCES (7/12) */}
-          <div className="lg:col-span-7">
-            <div className="bg-basely-navy/30 border border-gray-800 rounded-xl p-8 h-full">
-              <h3 className="text-white font-bold mb-8 flex items-center gap-3">
-                <span className="w-8 h-8 rounded bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500 text-xs">02</span>
-                Search Preferences
-              </h3>
-
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-6">
+              {/* NEW SECTION 02: SEARCH PREFERENCES (Replacing Status) */}
+              <div className="bg-basely-navy/30 border border-gray-800 rounded-lg p-8 relative overflow-hidden font-mono flex flex-col min-h-[500px]">
+                <h3 className="text-white font-bold mb-8 flex items-center gap-3">
+                  <span className="text-cyan-400 text-sm">02</span>
+                  Search Preferences
+                </h3>
+                
+                <div className="space-y-8 flex-1">
                   <div>
-                    <label className="block text-[10px] text-gray-600 font-mono uppercase mb-3">Industry Focus</label>
+                    <label className="block text-[10px] text-gray-600 uppercase tracking-widest mb-3">Industry Focus</label>
                     <div className="flex flex-wrap gap-2">
-                       {['FinTech', 'Cyber', 'AI', 'Cloud', 'Crypto', 'Quant', 'HealthTech'].map(ind => (
+                       {['FinTech', 'Quant', 'AI/ML', 'Cloud', 'Crypto', 'SWE'].map(ind => (
                          <button 
                           key={ind}
                           onClick={() => setPreferredIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind])}
-                          className={`px-3 py-1.5 rounded border text-[10px] font-mono transition-all ${preferredIndustries.includes(ind) ? 'bg-cyan-500 border-cyan-500 text-white' : 'border-gray-800 text-gray-500 hover:border-gray-600'}`}
+                          className={`px-3 py-1.5 rounded border text-[10px] transition-all ${preferredIndustries.includes(ind) ? 'bg-cyan-500 border-cyan-500 text-white shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'border-gray-800 text-gray-500 hover:border-gray-600'}`}
                          >
                            {ind}
                          </button>
                        ))}
                     </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-[10px] text-gray-600 font-mono uppercase mb-2">Exclude Companies</label>
-                    <div className="bg-black/40 border border-gray-800 rounded-lg p-3 h-32 overflow-y-auto custom-scrollbar">
-                       <div className="grid grid-cols-2 gap-2">
+
+                  <div className="flex-1 flex flex-col min-h-0">
+                    <label className="block text-[10px] text-gray-600 uppercase tracking-widest mb-3">Excluded Nodes</label>
+                    <div className="bg-black/40 border border-gray-800 rounded-lg p-3 flex-1 overflow-y-auto custom-scrollbar">
+                       <div className="grid grid-cols-1 gap-1.5">
                           {availableCompanies.map(c => (
                             <button 
                               key={c.id} 
                               onClick={() => setExcludedIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id])}
-                              className={`text-[9px] font-mono p-1 rounded border text-left truncate transition-colors ${excludedIds.includes(c.id) ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'border-gray-800 text-gray-600 hover:border-gray-700'}`}
+                              className={`text-[9px] p-2 rounded border text-left truncate transition-colors ${excludedIds.includes(c.id) ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'border-gray-800 text-gray-500 hover:border-gray-700'}`}
                             >
                               {excludedIds.includes(c.id) ? '[-] ' : '[+] '}{c.name}
                             </button>
@@ -313,60 +367,82 @@ export default function Home() {
                        </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex flex-col justify-end gap-6">
-                   <p className="text-[10px] text-gray-500 font-mono leading-relaxed">
-                     Our neural engine will cross-reference your GitHub commits, READMEs, and intent against these filters to find the highest semantic match.
-                   </p>
-                   <button 
-                    onClick={handleMatch}
-                    disabled={isLoading || !session}
-                    className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 disabled:bg-gray-800 disabled:text-gray-600 text-black font-bold text-xs uppercase tracking-widest rounded-lg transition-all shadow-lg shadow-cyan-500/20 active:scale-95 flex items-center justify-center gap-3"
-                   >
-                     Compute Company Matches
-                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                     </svg>
-                   </button>
+                  <div className="pt-4 border-t border-gray-800">
+                    <p className="text-[10px] text-gray-600 leading-relaxed italic">
+                      // Neural engine will filter results based on selected technical sectors and excluded organizational nodes.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* RESULTS SECTION */}
+            <button 
+              onClick={() => setShowPreview(!showPreview)}
+              className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.2em] hover:text-cyan-400 transition-colors border-b border-transparent hover:border-cyan-400/30 pb-1 mt-8"
+            >
+              {showPreview ? "Hide_Available_Companies" : "Preview_Available_Companies"}
+            </button>
+          </div>
+        </section>
+
+        {/* PREVIEW GRID */}
+        {showPreview && !isLoading && (
+          <section className="pb-20 animate-slideUp">
+            <div className="flex items-center gap-4 mb-10">
+              <h3 className="font-mono text-xs text-cyan-400 uppercase tracking-widest whitespace-nowrap">Available Companies</h3>
+              <div className="h-[1px] w-full bg-gradient-to-r from-cyan-500/30 to-transparent"></div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {availableCompanies.map((company) => (
+                <div key={company.id} className="p-6 bg-basely-navy/20 border border-gray-800 rounded-lg hover:border-cyan-500/20 transition-all group">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-10 h-10 rounded bg-basely-dark flex items-center justify-center text-xl border border-gray-800 group-hover:border-cyan-500/30 transition-colors">
+                      {company.logo}
+                    </div>
+                    <div>
+                      <h4 className="text-[#fafafa] font-bold text-sm group-hover:text-cyan-400 transition-colors">{company.name}</h4>
+                      <p className="text-[10px] font-mono text-gray-600 uppercase">{company.industry}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* RESULTS GRID */}
         {matches.length > 0 && (
-          <div id="results" className="mt-20 animate-fadeIn">
-            <div className="flex items-center justify-between mb-12 border-b border-gray-900 pb-6">
-               <div>
-                  <h2 className="text-2xl font-bold">Matching Affinity</h2>
-                  <p className="text-xs text-gray-500 font-mono mt-1">Nodes identified with high technical resonance</p>
-               </div>
-               <button 
+          <section id="results" className="pb-32 max-w-5xl mx-auto scroll-mt-24">
+            <div className="flex items-end justify-between mb-12 border-b border-basely-navy pb-6 font-mono">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">Signal Detected</h2>
+                <p className="text-gray-600 text-sm italic">Primary affinity nodes identified within the sector</p>
+              </div>
+              <button 
                 onClick={handleDownloadPDF}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-900 border border-gray-800 rounded text-[10px] font-mono text-cyan-500 hover:border-cyan-500/50 transition-all uppercase tracking-widest"
                >
                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                  </svg>
-                 Export Portfolio PDF
+                 Export PDF
                </button>
             </div>
 
             <div className="grid gap-6">
-              {matches.map((company, idx) => (
-                <MatchCard key={company.id} company={company} index={idx} />
+              {matches.map((company, index) => (
+                <MatchCard key={company.id} company={company} index={index} />
               ))}
             </div>
-          </div>
+          </section>
         )}
-
       </div>
-      
-      <footer className="py-20 border-t border-gray-900 text-center">
-        <p className="text-[8px] font-mono text-gray-700 uppercase tracking-[0.5em]">
-          Basely.Connect // Neural_Matching_v1.2 // 2026
+
+      <footer className="py-20 border-t border-basely-navy/50 text-center">
+        <p className="text-[10px] font-mono text-gray-700 uppercase tracking-[0.4em]">
+          &copy; 2026 Basely.Connect // Sector_Authority_Granted
         </p>
       </footer>
     </main>
@@ -378,14 +454,14 @@ function MatchCard({ company, index }: { company: CompanyMatch; index: number })
 
   return (
     <div
-      className="group relative bg-basely-navy/20 border border-gray-800 hover:border-cyan-500/40 rounded-lg overflow-hidden transition-all duration-300 animate-slideUp"
+      className="group relative bg-basely-navy/20 border border-gray-800 hover:border-basely-orange/40 rounded-lg overflow-hidden transition-all duration-300 animate-slideUp"
       style={{ animationDelay: `${index * 100}ms` }}
     >
       <div className="flex flex-col md:flex-row">
         {/* Score Bar */}
-        <div className="md:w-1.5 bg-gray-800 group-hover:bg-cyan-500/20 transition-colors relative">
+        <div className="md:w-1.5 bg-gray-800 group-hover:bg-basely-orange/20 transition-colors relative font-mono">
           <div
-            className="absolute top-0 left-0 w-full bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)] transition-all duration-1000"
+            className="absolute top-0 left-0 w-full bg-basely-orange shadow-[0_0_15px_rgba(255,107,53,0.5)] transition-all duration-1000"
             style={{ height: `${company.matchScore}%` }}
           />
         </div>
@@ -397,11 +473,11 @@ function MatchCard({ company, index }: { company: CompanyMatch; index: number })
                 {company.logo}
               </div>
               <div>
-                <h4 className="text-2xl font-bold text-white group-hover:text-cyan-500 transition-colors mb-1">
+                <h4 className="text-2xl font-bold text-white group-hover:text-basely-orange transition-colors mb-1">
                   {company.name}
                 </h4>
                 <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-mono text-cyan-500 uppercase tracking-widest bg-cyan-500/5 px-2 py-0.5 rounded border border-cyan-500/10">
+                  <span className="text-[10px] font-mono text-basely-orange uppercase tracking-widest bg-basely-orange/5 px-2 py-0.5 rounded border border-basely-orange/10">
                     {company.industry}
                   </span>
                   <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">
@@ -421,50 +497,25 @@ function MatchCard({ company, index }: { company: CompanyMatch; index: number })
             </div>
           </div>
 
-          <div className="mb-8 border-l border-gray-800 pl-6 py-1 group-hover:border-cyan-500/30 transition-all">
-            <p
-              className={`text-gray-400 text-sm leading-relaxed font-light italic transition-all ${expanded ? '' : 'line-clamp-4'
-                }`}
-            >
+          <div className="mb-8 border-l border-gray-800 pl-6 py-1 group-hover:border-basely-orange/30 transition-all font-mono">
+            <p className={`text-gray-400 text-sm leading-relaxed font-light italic transition-all ${expanded ? '' : 'line-clamp-4'}`}>
               &quot;{company.matchReason}&quot;
             </p>
             <button
               onClick={() => setExpanded(!expanded)}
               className="mt-2 text-[10px] font-mono text-cyan-400 uppercase tracking-widest hover:text-cyan-300 focus:outline-none"
             >
-              {expanded ? 'Show_Less' : 'Expand_Analysis'}
+              {expanded ? '[-] Show_Less' : '[+] Expand_Analysis'}
             </button>
           </div>
 
           <div className="flex flex-wrap gap-2">
             {company.matchedLanguages?.map((skill: string) => (
-              <span
-                key={skill}
-                className="px-3 py-1 rounded border border-gray-800 text-gray-300 text-[10px] font-mono uppercase tracking-wider bg-basely-dark group-hover:border-cyan-500/20 transition-all"
-              >
+              <span key={skill} className="px-3 py-1 rounded border border-gray-800 text-gray-300 text-[10px] font-mono uppercase tracking-wider bg-basely-dark group-hover:border-basely-orange/20 transition-all">
                 {skill}
               </span>
             ))}
           </div>
-
-          {/* Apply Button */}
-          {/* @ts-ignore */}
-          {company.website && (
-            <div className="mt-6 pt-6 border-t border-gray-800">
-              <a
-                // @ts-ignore
-                href={company.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-500/90 text-black font-mono text-xs uppercase tracking-widest rounded transition-all shadow-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] group"
-              >
-                <span>Apply Now</span>
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </a>
-            </div>
-          )}
         </div>
       </div>
     </div>
