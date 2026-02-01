@@ -1,0 +1,21 @@
+const COMPANY_URLS = [
+  // Trading/Quant Firms
+  'https://www.mwam.com/join-us/',                    // Marshall Wace
+  'https://careers.imc.com/',                         // IMC Trading
+  'https://www.hudsonrivertrading.com/careers/',      // HRT
+  'https://www.jumptrading.com/careers/',             // Jump Trading
+  'https://www.gresearch.com/join-us/',               // G-Research
+  'https://www.bamfunds.com/careers',                // Balyasny
+  'https://optiver.com/working-at-optiver/',          // Optiver
+  'https://www.citadel.com/careers/',                 // Citadel
+  'https://www.wintermute.com/careers/',              // Wintermute
+  'https://www.qube-rt.com/careers/',                 // QRT
+  
+  // Tech Companies
+  'https://www.jetbrains.com/careers/',               // JetBrains
+  'https://bendingspoons.com/careers/',               // Bending Spoons
+  'https://www.anthropic.com/careers/',               // Anthropic (Claude)
+  'https://www.goodnotes.com/careers/',               // GoodNotes
+  'https://www.thebridge.social/careers/',            // The Bridge (verify this)
+  'https://www.palmify.com/careers/',                 // Palmify (verify this)
+]
