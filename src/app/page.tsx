@@ -13,6 +13,7 @@ export default function Home() {
 
   // Navigation State
   const [view, setView] = useState<ViewState>('landing');
+  const [showPartners, setShowPartners] = useState(false);
 
   // Input State
   const [manualUsername, setManualUsername] = useState('');
@@ -159,7 +160,7 @@ export default function Home() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center">
+      <div className="min-h-screen bg-[#020203] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
           <span className="font-mono text-cyan-400 text-xs uppercase tracking-[0.3em] animate-pulse">Initializing_System</span>
@@ -169,10 +170,15 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen relative bg-[#0a0a0c] text-white selection:bg-cyan-500/30">
+    <main className="min-h-screen relative bg-[#020203] text-white selection:bg-cyan-500/30 overflow-x-hidden">
 
-      {/* LOADING OVERLAY */}
-      {isLoading && (
+      {/* BACKGROUND ELEMENTS */}
+      <div className="grid-overlay" />
+      <div className="orb orb-1" />
+      <div className="orb orb-2" />
+      <div className="orb orb-3" />
+      <div className="orb orb-4" />
+      {/* LOADING OVERLAY */}      {isLoading && (
         <div className="fixed inset-0 z-[100] bg-[#0a0a0c]/95 backdrop-blur-xl flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-basely-navy/50 border border-gray-800 rounded-2xl p-10 font-mono shadow-2xl relative overflow-hidden">
             <div className="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/10 blur-[80px] rounded-full" />
@@ -209,7 +215,6 @@ export default function Home() {
 
       {/* HEADER */}
       <div className="absolute top-10 left-10 z-40 flex items-center gap-4 group cursor-pointer" onClick={() => setView('landing')}>
-        <Image src="/BaselyLogo.png" alt="Basely" width={38} height={38} className="rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.2)]" />
         <div className="flex flex-col leading-none">
           <span className="text-white font-bold text-xl tracking-tight">Basely</span>
           <span className="text-cyan-500 font-mono text-[9px] tracking-[0.3em] uppercase font-black opacity-90">Connect</span>
@@ -247,9 +252,41 @@ export default function Home() {
             <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-16 leading-relaxed font-light animate-slideUp opacity-80">
               Basely.Connect cross-references your engineering footprint with high-growth technical teams to find your optimal semantic fit.
             </p>
-            <button onClick={() => setView('onboarding')} className="px-12 py-5 bg-white text-black font-black rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-slideUp uppercase tracking-[0.3em] text-xs">
-              Initiate Match Sequence
-            </button>
+            <div className="flex flex-col items-center gap-6 animate-slideUp">
+              <button onClick={() => setView('onboarding')} className="px-10 py-4 bg-white text-black font-black rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_50px_rgba(34,211,238,0.3)] uppercase tracking-[0.3em] text-[11px]">
+                Initiate Match Sequence
+              </button>
+
+              <button
+                onClick={() => setShowPartners(!showPartners)}
+                className="text-[10px] font-black font-mono text-gray-600 hover:text-cyan-500 uppercase tracking-[0.4em] transition-colors flex items-center gap-2"
+              >
+                {showPartners ? '// Close_Database' : '// View_Partner_Ecosystem'}
+              </button>
+            </div>
+
+            {/* PARTNER ECOSYSTEM PREVIEW */}
+            {showPartners && (
+              <div className="mt-12 w-full max-w-5xl mx-auto animate-fadeIn">
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden">
+                  <div className="flex flex-wrap justify-center gap-6">
+                    {availableCompanies.slice(0, 12).map(company => (
+                      <div key={company.id} className="group flex flex-col items-center gap-2 w-20">
+                        <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center text-2xl group-hover:border-cyan-500/30 group-hover:scale-110 transition-all duration-300">
+                          {company.logo}
+                        </div>
+                        <span className="text-[8px] font-mono text-gray-500 uppercase tracking-tighter truncate w-full text-center">{company.name}</span>
+                      </div>
+                    ))}
+                    {availableCompanies.length > 12 && (
+                      <div className="flex flex-col items-center justify-center w-20 opacity-40">
+                        <div className="text-[10px] font-mono text-gray-500">+{availableCompanies.length - 12} MORE</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -272,16 +309,16 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid lg:grid-cols-12 gap-6 items-start h-full">
+            <div className="grid lg:grid-cols-12 gap-6 items-stretch">
               {/* LEFT COLUMN - INPUTS */}
-              <div className="lg:col-span-7 space-y-4">
+              <div className="lg:col-span-7 space-y-4 flex flex-col">
 
                 {/* 1. GITHUB & IDENTITY - COMPACT */}
-                <div className="bg-basely-navy/20 border border-gray-800/50 rounded-xl p-5 hover:border-cyan-500/20 transition-all">
+                <div className="bg-basely-navy/20 border border-gray-800/50 rounded-xl p-6 hover:border-cyan-500/20 transition-all">
                   <div className="flex items-start gap-4">
                     <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-[10px] text-cyan-500 border border-white/5 shrink-0">01</div>
                     <div className="flex-1">
-                      <h3 className="text-white font-bold text-sm mb-3">Identity Sync</h3>
+                      <h3 className="text-white font-bold text-sm mb-4 tracking-tight">Identity Sync</h3>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           {session ? (
@@ -294,7 +331,6 @@ export default function Home() {
                             </div>
                           ) : (
                             <button onClick={() => signIn('github')} className="w-full h-full min-h-[50px] rounded-lg border border-gray-700 bg-white/5 hover:bg-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-2">
-                              {/* GitHub Icon */}
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>
                               Connect GitHub
                             </button>
@@ -306,97 +342,102 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* 2. ARTIFACTS - HORIZONTAL SPLIT */}
-                <div className="bg-basely-navy/20 border border-gray-800/50 rounded-xl p-5 hover:border-cyan-500/20 transition-all">
-                  <div className="flex items-center gap-4 mb-4">
+                {/* 2. DOCUMENT UPLOAD - HORIZONTAL SPLIT */}
+                <div className="bg-basely-navy/20 border border-gray-800/50 rounded-xl p-6 hover:border-cyan-500/20 transition-all">
+                  <div className="flex items-start gap-4">
                     <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-[10px] text-cyan-500 border border-white/5 shrink-0">02</div>
-                    <h3 className="text-white font-bold text-sm">Artifacts</h3>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* CV */}
-                    <label className={`relative flex items-center gap-3 p-3 border border-dashed rounded-lg cursor-pointer transition-all ${cvFileName ? 'bg-cyan-500/5 border-cyan-500/30' : 'bg-black/20 border-gray-800 hover:border-gray-600'}`}>
-                      <input type="file" onChange={(e) => handleFileUpload(e, 'cv')} className="hidden" />
-                      <span className="text-xl opacity-50">📄</span>
-                      <div className="overflow-hidden">
-                        <div className="text-[10px] font-bold text-white uppercase tracking-wider">{cvFileName ? 'CV_LOADED' : 'UPLOAD CV'}</div>
-                        <div className="text-[9px] text-gray-500 font-mono truncate">{cvFileName || 'PDF/TXT Only'}</div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-bold text-sm mb-4 tracking-tight">Document Upload</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* CV */}
+                        <label className={`relative flex items-center gap-3 p-4 border border-dashed rounded-lg cursor-pointer transition-all ${cvFileName ? 'bg-cyan-500/5 border-cyan-500/30' : 'bg-black/20 border-gray-800 hover:border-gray-600'}`}>
+                          <input type="file" onChange={(e) => handleFileUpload(e, 'cv')} className="hidden" />
+                          <span className="text-xl opacity-50">📄</span>
+                          <div className="overflow-hidden">
+                            <div className="text-[10px] font-bold text-white uppercase tracking-wider">{cvFileName ? 'CV_LOADED' : 'UPLOAD CV'}</div>
+                            <div className="text-[9px] text-gray-500 font-mono truncate">{cvFileName || 'PDF/TXT Only'}</div>
+                          </div>
+                        </label>
+                        {/* LinkedIn */}
+                        <label className={`relative flex items-center gap-3 p-4 border border-dashed rounded-lg cursor-pointer transition-all ${linkedinFileName ? 'bg-cyan-500/5 border-cyan-500/30' : 'bg-black/20 border-gray-800 hover:border-gray-600'}`}>
+                          <input type="file" onChange={(e) => handleFileUpload(e, 'linkedin')} className="hidden" />
+                          <span className="text-xl opacity-50">💼</span>
+                          <div className="overflow-hidden">
+                            <div className="text-[10px] font-bold text-white uppercase tracking-wider">{linkedinFileName ? 'LI_LOADED' : 'LINKEDIN PDF'}</div>
+                            <div className="text-[9px] text-gray-500 font-mono truncate">{linkedinFileName || 'Profile Export'}</div>
+                          </div>
+                        </label>
                       </div>
-                    </label>
-                    {/* LinkedIn */}
-                    <label className={`relative flex items-center gap-3 p-3 border border-dashed rounded-lg cursor-pointer transition-all ${linkedinFileName ? 'bg-cyan-500/5 border-cyan-500/30' : 'bg-black/20 border-gray-800 hover:border-gray-600'}`}>
-                      <input type="file" onChange={(e) => handleFileUpload(e, 'linkedin')} className="hidden" />
-                      <span className="text-xl opacity-50">💼</span>
-                      <div className="overflow-hidden">
-                        <div className="text-[10px] font-bold text-white uppercase tracking-wider">{linkedinFileName ? 'LI_LOADED' : 'LINKEDIN PDF'}</div>
-                        <div className="text-[9px] text-gray-500 font-mono truncate">{linkedinFileName || 'Profile Export'}</div>
-                      </div>
-                    </label>
+                    </div>
                   </div>
                 </div>
 
-                {/* 3. STATEMENT - CONDENSED */}
-                <div className="bg-basely-navy/20 border border-gray-800/50 rounded-xl p-5 hover:border-cyan-500/20 transition-all">
-                  <div className="flex items-start gap-4">
+                {/* 3. PERSONAL STATEMENT - CONDENSED */}
+                <div className="bg-basely-navy/20 border border-gray-800/50 rounded-xl p-6 hover:border-cyan-500/20 transition-all flex-1">
+                  <div className="flex items-start gap-4 h-full">
                     <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-[10px] text-cyan-500 border border-white/5 shrink-0">03</div>
-                    <div className="flex-1 w-full">
-                      <h3 className="text-white font-bold text-sm mb-3">Signal Statement</h3>
-                      <textarea value={personalStatement} onChange={(e) => setPersonalStatement(e.target.value)} placeholder="Brief technical summary (stack, interests, goals)..." className="w-full bg-black/40 border border-gray-800 rounded-lg p-3 text-xs text-gray-300 focus:outline-none focus:border-cyan-500/50 transition-all h-24 resize-none font-mono leading-relaxed" />
+                    <div className="flex-1 w-full h-full flex flex-col">
+                      <h3 className="text-white font-bold text-sm mb-4 tracking-tight">Personal Statement</h3>
+                      <textarea value={personalStatement} onChange={(e) => setPersonalStatement(e.target.value)} placeholder="Brief technical summary (stack, interests, goals)..." className="w-full bg-black/40 border border-gray-800 rounded-lg p-4 text-xs text-gray-300 focus:outline-none focus:border-cyan-500/50 transition-all flex-1 min-h-[120px] resize-none font-mono leading-relaxed" />
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* RIGHT COLUMN - PREFERENCES */}
-              <div className="lg:col-span-5 flex flex-col h-full bg-basely-navy/20 border border-gray-800/50 rounded-xl p-5 hover:border-cyan-500/20 transition-all">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-8 h-8 rounded bg-cyan-500/10 flex items-center justify-center text-[10px] text-cyan-500 border border-cyan-500/10 shrink-0">04</div>
-                  <h3 className="text-white font-bold text-sm">Target Parameters</h3>
-                </div>
+              <div className="lg:col-span-5 flex flex-col h-full">
+                <div className="bg-[#111214]/90 border border-gray-800/50 rounded-xl p-6 hover:border-cyan-500/20 transition-all flex flex-col h-full">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-8 h-8 rounded bg-cyan-500/10 flex items-center justify-center text-[10px] text-cyan-500 border border-cyan-500/10 shrink-0">04</div>
+                    <h3 className="text-white font-bold text-sm tracking-tight">Target Parameters</h3>
+                  </div>
 
-                <div className="flex-1 flex flex-col space-y-5 overflow-hidden">
-                  {/* INDUSTRIES */}
-                  <div className="flex-1 min-h-0 flex flex-col">
-                    <label className="block text-[9px] text-gray-500 uppercase font-black tracking-widest mb-3">Industry & Domain</label>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-                      <div className="flex flex-wrap gap-1.5">
-                        {[
-                          'Software Dev', 'Infra', 'Big Tech', 'Consulting', 'Mobile',
-                          'AI/ML', 'Quant', 'FinTech', 'Crypto', 'Gaming',
-                          'Security', 'Cloud', 'Data Science', 'Frontend', 'Backend',
-                          'Fullstack', 'Embedded', 'DevTools', 'Robotics', 'HealthTech'
-                        ].map(ind => (
-                          <button key={ind} onClick={() => setPreferredIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind])} className={`px-2.5 py-1.5 rounded text-[10px] font-bold border transition-all ${preferredIndustries.includes(ind) ? 'bg-cyan-500 border-cyan-500 text-black' : 'bg-black/20 border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}>
-                            {ind}
-                          </button>
-                        ))}
+                  <div className="flex-1 flex flex-col space-y-6 overflow-hidden">
+                    {/* INDUSTRIES */}
+                    <div className="flex-1 min-h-0 flex flex-col">
+                      <label className="block text-[9px] text-gray-500 uppercase font-black tracking-widest mb-3">Industry & Domain</label>
+                      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 bg-black/20 border border-gray-800/50 rounded-lg p-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            'Software Dev', 'Infra', 'AI/ML', 'Quant', 'FinTech',
+                            'Crypto', 'Gaming', 'Security', 'Cloud', 'HealthTech'
+                          ].map(ind => (
+                            <button key={ind} onClick={() => setPreferredIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind])} className={`px-2.5 py-1.5 rounded text-[10px] font-bold border transition-all ${preferredIndustries.includes(ind) ? 'bg-cyan-500 border-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.2)]' : 'bg-black/20 border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}>
+                              {ind}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* CONTEXT */}
-                  <div>
-                    <label className="block text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2">Filters / Notes</label>
-                    <textarea value={additionalContext} onChange={(e) => setAdditionalContext(e.target.value)} placeholder="Ex: Remote only, Series B+, >$180k base..." className="w-full bg-black/40 border border-gray-800 rounded-lg p-3 text-xs text-gray-400 h-16 resize-none font-mono" />
-                  </div>
+                    {/* CONTEXT */}
+                    <div className="shrink-0">
+                      <label className="block text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2">Filters / Notes</label>
+                      <textarea value={additionalContext} onChange={(e) => setAdditionalContext(e.target.value)} placeholder="Ex: Remote only, Series B+, >$180k base..." className="w-full bg-black/40 border border-gray-800 rounded-lg p-3 text-xs text-gray-400 h-16 resize-none font-mono focus:outline-none focus:border-cyan-500/50" />
+                    </div>
 
-                  {/* EXCLUDES */}
-                  <div className="max-h-24 flex flex-col">
-                    <label className="block text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2">Exclude Companies</label>
-                    <div className="bg-black/40 border border-gray-800 rounded-lg p-2 overflow-y-auto custom-scrollbar flex-1">
-                      <div className="flex flex-wrap gap-1">
-                        {availableCompanies.map(c => (
-                          <button key={c.id} onClick={() => setExcludedIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id])} className={`text-[9px] font-mono px-2 py-1 rounded border truncate max-w-[120px] ${excludedIds.includes(c.id) ? 'bg-red-500/10 border-red-500/30 text-red-500' : 'border-gray-800 text-gray-600 hover:border-gray-600'}`}>
-                            {excludedIds.includes(c.id) ? '✕ ' : '+ '}{c.name}
-                          </button>
-                        ))}
+                    {/* EXCLUDES */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-[9px] text-gray-500 uppercase font-black tracking-widest">Exclude Companies</label>
+                        <span className="text-[9px] text-cyan-500 font-mono">{excludedIds.length} EXCLUDED</span>
+                      </div>
+                      <div className="bg-black/40 border border-gray-800 rounded-lg p-2 overflow-y-auto custom-scrollbar flex-1 min-h-[80px]">
+                        <div className="flex flex-wrap gap-1">
+                          {availableCompanies.map(c => (
+                            <button key={c.id} onClick={() => setExcludedIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id])} className={`text-[9px] font-mono px-2 py-1 rounded border truncate max-w-[120px] transition-all ${excludedIds.includes(c.id) ? 'bg-red-500/10 border-red-500/30 text-red-500' : 'border-gray-800 text-gray-600 hover:border-gray-600'}`}>
+                              {excludedIds.includes(c.id) ? '✕ ' : '+ '}{c.name}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <button onClick={handleMatch} disabled={isLoading} className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-black text-xs uppercase tracking-[0.3em] rounded-lg transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] active:scale-95 flex items-center justify-center gap-2 mt-2">
-                    <span>Execute Match</span>
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                  </button>
+                    <button onClick={handleMatch} disabled={isLoading} className="w-full py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-black text-xs uppercase tracking-[0.3em] rounded-lg transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] active:scale-95 flex items-center justify-center gap-2 mt-auto">
+                      <span>Execute Match</span>
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -440,7 +481,7 @@ export default function Home() {
 function MatchCard({ company, index }: { company: CompanyMatch; index: number }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div className="group bg-basely-navy/10 border border-gray-800/50 hover:border-cyan-500/30 rounded-3xl overflow-hidden transition-all duration-500 animate-slideUp" style={{ animationDelay: `${index * 150}ms` }}>
+    <div className="group bg-[#111214]/90 border border-gray-800/50 hover:border-cyan-500/30 rounded-3xl overflow-hidden transition-all duration-500 animate-slideUp" style={{ animationDelay: `${index * 150}ms` }}>
       <div className="flex flex-col lg:flex-row">
         <div className="lg:w-2 bg-gray-900/50 relative">
           <div className="absolute top-0 left-0 w-full bg-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.8)] transition-all duration-[2000ms] ease-out" style={{ height: `${company.matchScore}%` }} />
