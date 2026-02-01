@@ -28,6 +28,12 @@ model Company {
   contributions String   @default("")
   lookingFor    String   @default("")
   careerPageUrl String?
+  
+  // Enriched Data
+  compensation  String?  @default("")
+  benefits      String?  @default("") // Markdown or JSON
+  locations     String?  @default("[]") // JSON string of cities
+  roleTypes     String?  @default("[]") // JSON string of roles
 }
 
 model User {

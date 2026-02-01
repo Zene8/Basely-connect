@@ -5,11 +5,12 @@ AI-powered GitHub and portfolio to company matching service. Analyzes your GitHu
 ## 🌟 Features
 
 - **GitHub Integration**: Analyzes your public/private repos, languages, and contributions
-- **AI-Powered Matching**: Uses OpenAI GPT-4o-mini for semantic analysis
+- **AI-Powered Matching**: Uses OpenAI GPT-4o for deep semantic reasoning and high-precision matching
 - **Resume Analysis**: Upload your resume for comprehensive skill matching
 - **Personal Statement**: Provide context about your career goals
 - **Company Database**: Pre-seeded with companies seeking various tech skills
 - **Match Scoring**: Get detailed match scores with reasoning and skill alignment
+- **Portfolio Export**: Generate professional PDF portfolios with technical evidence
 
 ## 🛠️ Tech Stack
 
@@ -17,7 +18,7 @@ AI-powered GitHub and portfolio to company matching service. Analyzes your GitHu
 - **Language**: TypeScript
 - **Database**: PostgreSQL (Neon) with Prisma ORM
 - **Authentication**: NextAuth.js with GitHub OAuth
-- **AI**: OpenAI GPT-4o-mini
+- **AI**: OpenAI GPT-4o (Reasoning Model)
 - **Styling**: TailwindCSS + Custom CSS
 - **Deployment**: Vercel
 
@@ -89,25 +90,30 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 connect/
 ├── prisma/
 │   ├── schema.prisma        # Database schema
-│   ├── seed.ts              # Database seeding script
+│   ├── seed.ts              # Database seeding script (Excel + JSON)
 │   └── migrations/          # Database migrations
 ├── src/
 │   ├── app/
 │   │   ├── api/             # API routes
-│   │   │   ├── auth/        # NextAuth endpoints
-│   │   │   ├── analyze/     # GitHub analysis endpoint
-│   │   │   ├── companies/   # Company listing endpoint
-│   │   │   ├── match/       # AI matching endpoint
+│   │   │   ├── analyze/     # GitHub analysis
+│   │   │   ├── companies/   # Company listing
+│   │   │   ├── match/       # AI matching engine
+│   │   │   ├── scrape/      # Web scraping endpoint
 │   │   │   └── seed/        # Database seeding endpoint
+│   │   ├── admin/           # Admin dashboard
+│   │   │   └── scrape/      # Career page scraper UI
 │   │   ├── layout.tsx       # Root layout
 │   │   ├── page.tsx         # Home page
 │   │   └── globals.css      # Global styles
 │   ├── components/          # React components
+│   │   └── Providers.tsx    # NextAuth & Theme providers
 │   ├── lib/
-│   │   ├── ai.ts           # OpenAI integration
+│   │   ├── agents.ts       # AI Agent orchestration
 │   │   ├── auth.ts         # NextAuth configuration
 │   │   ├── github.ts       # GitHub API client
-│   │   ├── matcher.ts      # Matching algorithms
+│   │   ├── scraper.ts      # Web scraping engine
+│   │   ├── parse-resume.ts # PDF/Word resume parser
+│   │   ├── pdf.ts          # PDF generation library
 │   │   └── prisma.ts       # Prisma client
 │   └── types/              # TypeScript definitions
 ├── public/                 # Static assets
@@ -181,20 +187,3 @@ Contributions welcome! Please open an issue or PR.
 ---
 
 Built with ❤️ by Basely
-            <button
-              onClick={() => setShowPreview(!showPreview)}
-              className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.2em] hover:text-cyan-400 transition-colors border-b border-transparent hover:border-cyan-400/30 pb-1"
-            >
-              {showPreview ? "Hide Context" : "Preview Available Companies"}
-            </button>
-          </div>
-        </section>
-
-                {/* RIGHT: Participating Nodes (Checkbox Grid) */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest">Participating Companies (Opt-out)</label>
-                    <span className="text-[10px] font-mono text-gray-600">{availableCompanies.length - excludedIds.length} Active</span>
-                  </div>
-
-                  <div className="bg-basely-dark border border-gray-800 rounded p-4 h-[300px] overflow-y-auto custom-scrollbar grid grid-cols-1 gap-2"> {/* simple list */}

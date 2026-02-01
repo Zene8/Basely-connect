@@ -1,4 +1,5 @@
 import { Octokit } from "octokit";
+import { analyzeAllRepos } from "./repo-analyzer";
 
 export async function getGitHubProfile(username: string, accessToken?: string) {
   if (!username) {
@@ -42,18 +43,30 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
 
     // Fetch up to 5 pages (500 repos max) to get a "deep" view
     let allRepos: any[] = [];
-    for (let i = 1; i <= 5; i++) {
-      const { data: pageRepos } = await octokit.rest.repos.listForUser({
-        username,
-        sort: "pushed", // Get recently active first
-        per_page: 100,
-        page: i,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        type: repoType as any
-      });
-
-      if (pageRepos.length === 0) break;
-      allRepos = allRepos.concat(pageRepos);
+    if (repoType === "all") {
+      // Authenticated user can use listForAuthenticatedUser to get private repos correctly
+      for (let i = 1; i <= 5; i++) {
+        const { data: pageRepos } = await octokit.rest.repos.listForAuthenticatedUser({
+          sort: "pushed",
+          per_page: 100,
+          page: i,
+          visibility: "all"
+        });
+        if (pageRepos.length === 0) break;
+        allRepos = allRepos.concat(pageRepos);
+      }
+    } else {
+      for (let i = 1; i <= 5; i++) {
+        const { data: pageRepos } = await octokit.rest.repos.listForUser({
+          username,
+          sort: "pushed",
+          per_page: 100,
+          page: i,
+          type: "owner"
+        });
+        if (pageRepos.length === 0) break;
+        allRepos = allRepos.concat(pageRepos);
+      }
     }
 
     const repos = allRepos;
@@ -105,9 +118,118 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       totalSize += repo.size || 0;
     }
 
+    // 7. Fetch Collaborators, Languages, and Frameworks for top 25 repos
+    const enrichedRepos = await Promise.all(repos.slice(0, 25).map(async (r) => {
+      let collaborators: string[] = [];
+      let repoLanguages: Record<string, number> = {};
+      let frameworks: string[] = [];
+
+      try {
+        // Only fetch collaborators if user is owner/admin
+        if (r.permissions?.push || r.permissions?.admin) {
+          const { data: collabs } = await octokit.rest.repos.listCollaborators({
+            owner: r.owner.login,
+            repo: r.name,
+            per_page: 10
+          });
+          collaborators = collabs.map(c => c.login);
+        }
+      } catch (e) {
+        // Might fail if token doesn't have enough scope or other reasons
+        console.warn(`Failed to fetch collaborators for ${r.name}`);
+      }
+
+      try {
+        const { data: langs } = await octokit.rest.repos.listLanguages({
+          owner: r.owner.login,
+          repo: r.name
+        });
+        repoLanguages = langs;
+      } catch (e) {
+        console.warn(`Failed to fetch languages for ${r.name}`);
+      }
+
+      // Try to detect frameworks/libraries by checking key files
+      // If a repo is empty or otherwise inaccessible, we skip content-based detection
+      if (r.size > 0) {
+        try {
+          const { data: contents } = await octokit.rest.repos.getContent({
+            owner: r.owner.login,
+            repo: r.name,
+            path: ""
+          });
+
+          if (Array.isArray(contents)) {
+            const filenames = contents.map(f => f.name);
+            
+            // Basic framework detection by filename
+            if (filenames.includes('package.json')) frameworks.push('Node.js');
+            if (filenames.includes('next.config.js') || filenames.includes('next.config.mjs')) frameworks.push('Next.js');
+            if (filenames.includes('tailwind.config.js')) frameworks.push('TailwindCSS');
+            if (filenames.includes('tsconfig.json')) frameworks.push('TypeScript');
+            if (filenames.includes('requirements.txt') || filenames.includes('pyproject.toml')) frameworks.push('Python');
+            if (filenames.includes('Gemfile')) frameworks.push('Ruby');
+            if (filenames.includes('go.mod')) frameworks.push('Go');
+            if (filenames.includes('Cargo.toml')) frameworks.push('Rust');
+            if (filenames.includes('docker-compose.yml') || filenames.includes('Dockerfile')) frameworks.push('Docker');
+            
+            // Deep scan package.json if it exists
+            if (filenames.includes('package.json')) {
+              try {
+                const { data: pkgData } = await octokit.rest.repos.getContent({
+                  owner: r.owner.login,
+                  repo: r.name,
+                  path: "package.json",
+                  headers: { accept: "application/vnd.github.raw+json" }
+                });
+                
+                const pkg = JSON.parse(pkgData as unknown as string);
+                const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+                
+                const majorLibs = [
+                  'react', 'vue', 'angular', 'svelte', 'express', 'prisma', 'sequelize', 
+                  'mongoose', 'redux', 'mobx', 'jest', 'cypress', 'vite', 'webpack', 
+                  'firebase', 'supabase', 'trpc', 'query', 'graphql', 'apollo'
+                ];
+                
+                majorLibs.forEach(lib => {
+                  if (allDeps[lib] || Object.keys(allDeps).some(k => k.includes(lib))) {
+                    frameworks.push(lib.charAt(0).toUpperCase() + lib.slice(1));
+                  }
+                });
+              } catch (e) {
+                // package.json might be missing or invalid
+              }
+            }
+          }
+        } catch (e) {
+          // Silent fail for content fetch - assume empty or inaccessible
+        }
+      }
+
+      return {
+        name: r.name,
+        description: r.description || "",
+        language: r.language || "Unknown",
+        stars: r.stargazers_count || 0,
+        url: r.html_url,
+        topics: r.topics || [],
+        isPrivate: r.private,
+        updatedAt: r.updated_at,
+        size: r.size,
+        owner: r.owner.login,
+        collaborators,
+        repoLanguages,
+        frameworks: Array.from(new Set(frameworks)) // unique values
+      };
+    }));
+
     const topLanguages = Object.entries(languagesMap)
       .sort(([, a], [, b]) => b - a)
       .map(([lang]) => lang);
+
+    // 8. Analyze and Summarize Repositories
+    const repoSummaries = await analyzeAllRepos(enrichedRepos);
 
     return {
       username: user.login,
@@ -128,15 +250,23 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       organizations,
       socialAccounts,
       profileReadme,
+      repoSummaries,
       deepTechStack: [],
-      repos: repos.slice(0, 15).map(r => ({
+      repos: enrichedRepos.concat(repos.slice(25, 40).map(r => ({
         name: r.name,
         description: r.description || "",
         language: r.language || "Unknown",
         stars: r.stargazers_count || 0,
         url: r.html_url,
-        topics: r.topics || []
-      }))
+        topics: r.topics || [],
+        isPrivate: r.private,
+        updatedAt: r.updated_at,
+        size: r.size,
+        owner: r.owner.login,
+        collaborators: [],
+        repoLanguages: {},
+        frameworks: []
+      })))
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

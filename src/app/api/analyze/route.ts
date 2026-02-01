@@ -18,6 +18,10 @@ export async function POST(req: Request) {
 
     const profile = await getGitHubProfile(username, token);
 
+    // Aggregate frameworks and skills from summaries
+    const frameworks = Array.from(new Set(profile.repoSummaries?.flatMap(s => s.frameworks) || []));
+    const skills = Array.from(new Set(profile.repoSummaries?.flatMap(s => s.skills) || []));
+
     return NextResponse.json({
       name: profile.name,
       bio: profile.bio,
@@ -25,11 +29,12 @@ export async function POST(req: Request) {
       languages: profile.topLanguages,
       organizations: profile.organizations,
       socials: profile.socialAccounts,
-      frameworks: [], 
-      skills: [], 
+      frameworks, 
+      skills, 
       totalRepos: profile.totalRepos,
       totalContributions: profile.totalSize, 
       topRepoStars: profile.totalStars,
+      repoSummaries: profile.repoSummaries
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {

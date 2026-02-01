@@ -10,7 +10,9 @@ export async function GET() {
       ...c,
       languages: JSON.parse(c.languages || '[]'),
       frameworks: JSON.parse(c.frameworks || '[]'),
-      skills: JSON.parse(c.skills || '[]')
+      skills: JSON.parse(c.skills || '[]'),
+      locations: JSON.parse(c.locations || '[]'),
+      roleTypes: JSON.parse(c.roleTypes || '[]')
     }))
 
     return NextResponse.json(formattedCompanies)
