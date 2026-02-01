@@ -1,9 +1,14 @@
 import OpenAI from 'openai';
-import { SynthesizedPortfolio, UserPreferences, AgentMatchResult, Company } from '@/types';
+import { SynthesizedPortfolio, UserPreferences, AgentMatchResult, Company, GitHubAnalysis } from '@/types';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const getOpenAI = () => {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("Missing OPENAI_API_KEY environment variable");
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+};
 
 /**
  * PORTFOLIO CREATOR AGENT
@@ -11,13 +16,14 @@ const openai = new OpenAI({
  */
 export async function createPortfolioAgent(
   userData: {
-    github: any;
+    github: GitHubAnalysis | null;
     resume?: string;
     linkedin?: string;
     statement?: string;
   },
   preferences: UserPreferences
 ): Promise<SynthesizedPortfolio> {
+  const openai = getOpenAI();
   const prompt = `
     You are an expert Career Coach and Technical Brand Strategist. 
     Your task is to synthesize the following raw data into a cohesive, high-impact professional portfolio.
@@ -155,6 +161,7 @@ export async function recruiterAgent(
   `;
 
   try {
+    const openai = getOpenAI();
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -186,6 +193,8 @@ export async function recruiterAgent(
  * RECRUITER / MATCHER ORCHESTRATOR
  * Orchestrates matching across multiple companies and filters results using the Recruiter Agent.
  */
+// Two-Phase Matching Optimization
+
 export async function recruiterMatcherAgent(
   portfolio: SynthesizedPortfolio,
   companies: Company[],
@@ -193,86 +202,115 @@ export async function recruiterMatcherAgent(
 ) {
   // Filter out opted-out companies
   const filteredCompanies = companies.filter(c => !preferences.optOutIds.includes(c.id));
+  if (filteredCompanies.length === 0) return [];
 
-  // To ensure extremely specific and unique scores, we pass all companies to a single prompt
-  // that can compare and rank them relatively.
-  const prompt = `
-    You are an elite Technical Recruiter and Talent Strategist.
-    Evaluate the fit between the candidate's portfolio and the following list of companies.
+  const openai = getOpenAI();
+
+  // --- PHASE 1: Quick Screening (Batch Processing) ---
+  // Rate all companies 0-100 quickly.
+  console.log(`Phase 1: Screening ${filteredCompanies.length} companies...`);
+
+  // We can screen ~20 companies in one fast prompt or split into chunks if needed. 
+  // With GPT-4o, 20 items is trivial for a simple score.
+  const screeningPrompt = `
+    Role: Elite Technical Recruiter.
+    Task: Quick Screen. Rate the fit of the candidate for each company (0-100).
     
-    Candidate Portfolio:
-    ${JSON.stringify(portfolio)}
+    Candidate: ${portfolio.name}, ${portfolio.title}
+    Expertise: ${portfolio.technicalExpertise.map(e => e.skills.join(', ')).join('; ')}
+    Summary: ${portfolio.summary.slice(0, 500)}...
     
-    User Industry Preferences: ${preferences.industries.join(', ')}
-    Special Requests: ${preferences.specialRequests}
+    Companies:
+    ${filteredCompanies.map(c => `
+      [ID: ${c.id}] ${c.name}
+      Stack: ${c.languages?.join(', ')}, ${c.frameworks?.join(', ')}
+      Looking For: ${c.lookingFor?.slice(0, 200)}
+    `).join('\n')}
     
-    Companies to Evaluate:
-    ${filteredCompanies.map(c => `- ID: ${c.id}, Name: ${c.name}, Industry: ${c.industry}, 
-      Stack: ${JSON.stringify({ languages: c.languages, frameworks: c.frameworks, skills: c.skills })},
-      Context: ${c.description}
-      (MISSION & CULTURE): ${c.lookingFor}`).join('\n')}
-    
-    Task Instructions:
-    1. THOUGHT: Perform a comparative analysis of all companies against the candidate. Think long and hard about the specific technical evidence provided in the portfolio. Analyze the technical depth, team-fit potential based on collaborators, and industry alignment.
-    2. UNIQUE SCORING: Provide a unique, high-precision score (range: 0.00 to 100.00) for EVERY company. 
-       MANDATORY: Use exactly 2 decimal places for the final score (e.g., 91.24). 
-       MANDATORY: No two companies should have the same score. This is a strict ranking.
-    3. DETAILED EVALUATION: For each company, provide:
-       - A LONG and EXTREMELY DETAILED summary of fit (at least 4-6 paragraphs, Markdown supported).
-       - In the summary, MANDATORY: Reference specific projects, technical evidence, stack details, and even collaborator-inferred team experience from the candidate's portfolio.
-       - Alignment scores (0.000 to 1.000) for Technical, Cultural, and Industry with high precision (3 decimal places).
-    4. SCRAPE EVERYTHING: Use all available context from the company profiles and the user's comprehensive portfolio. No detail is too small.
-    
-    Return a strictly valid JSON object with the following structure:
-    {
-      "evaluations": [
-        {
-          "companyId": number,
-          "thought": "Deep reasoning for this specific match, analyzing technical synergy and potential impact.",
-          "score": number, // 0-100 scale (e.g. 92.57)
-          "summary": "Comprehensive, long-form feedback referencing specific user projects (Markdown).",
-          "strengths": ["Strength 1", "Strength 2", "Strength 3"],
-          "alignment": {
-            "technical": number, // 0-1 scale
-            "cultural": number, // 0-1 scale
-            "industry": number // 0-1 scale
-          }
-        },
-        ...
-      ]
-    }
+    Return pure JSON array: [{ "id": number, "score": number, "reason": "1 concise sentence" }]
   `;
 
+  let screenedResults: Array<{ id: number, score: number, reason: string }> = [];
+
   try {
-    const response = await openai.chat.completions.create({
+    const screenResponse = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "developer", content: "You are an expert technical evaluator. Perform a comparative ranking then output JSON only. Ensure the output is a single valid JSON object." },
-        { role: "user", content: prompt }
+        { role: "developer", content: "Output JSON array only." },
+        { role: "user", content: screeningPrompt }
       ],
+      response_format: { type: "json_object" }
     });
 
-    const content = response.choices[0].message.content;
-    if (!content) throw new Error("Empty response from OpenAI");
+    const raw = screenResponse.choices[0].message.content || '{"results": []}';
+    // Handle potential wrapper keys
+    const parsed = JSON.parse(raw);
+    screenedResults = Array.isArray(parsed) ? parsed : (parsed.results || parsed.matches || []);
 
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const jsonString = jsonMatch ? jsonMatch[0] : content;
-
-    const parsed = JSON.parse(jsonString) as { evaluations: any[] };
-
-    return parsed.evaluations.map(evaluation => {
-      const company = filteredCompanies.find(c => c.id === evaluation.companyId);
-      return {
-        ...company,
-        matchScore: evaluation.score,
-        matchReason: evaluation.summary,
-        agentEvaluation: evaluation
-      };
-    }).sort((a, b) => b.matchScore - a.matchScore);
+    // Fallback if parsing fails to find array
+    if (!Array.isArray(screenedResults)) screenedResults = [];
 
   } catch (error) {
-    console.error("Recruiter Matcher Orchestrator Error:", error);
-    // Fallback if the large prompt fails
-    return [];
+    console.error("Screening Phase Failed:", error);
+    // Fallback: everyone gets 50
+    screenedResults = filteredCompanies.map(c => ({ id: c.id, score: 50, reason: "Screening failed, manual review needed." }));
   }
+
+  // Sort by score
+  screenedResults.sort((a, b) => b.score - a.score);
+
+  // --- PHASE 2: Deep Dive (Top 5 Only) ---
+  // Select top 5 for identifying the "Strategic Matches"
+  const topCompanyIds = new Set(screenedResults.slice(0, 5).map(r => r.id));
+
+  console.log(`Phase 2: Deep analyzing top ${topCompanyIds.size} companies...`);
+
+  // Parallel execution of deep analysis for top matches
+  const processedMatches = await Promise.all(filteredCompanies.map(async (company) => {
+
+    // Basic result structure
+    const baseResult = {
+      ...company,
+      matchScore: 0,
+      matchReason: "",
+      agentEvaluation: {
+        companyId: company.id,
+        thought: "Screened out",
+        score: 0,
+        summary: "Not a primary match.",
+        strengths: [],
+        alignment: { technical: 0, cultural: 0, industry: 0 }
+      }
+    };
+
+    // Find screening score
+    const screenData = screenedResults.find(r => r.id === company.id);
+    if (screenData) {
+      baseResult.matchScore = screenData.score;
+      baseResult.matchReason = screenData.reason;
+      baseResult.agentEvaluation.score = screenData.score;
+    }
+
+    // If NOT in top 5, return concise version immediately
+    if (!topCompanyIds.has(company.id)) {
+      return baseResult;
+    }
+
+    // If IN top 5, Run Deep Analysis
+    try {
+      const topResult = await recruiterAgent(portfolio, company, preferences);
+      return {
+        ...company,
+        matchScore: topResult.score,
+        matchReason: topResult.summary, // Use detailed summary for top matches
+        agentEvaluation: topResult
+      };
+    } catch (e) {
+      console.error(`Deep analysis failed for ${company.name}`, e);
+      return baseResult;
+    }
+  }));
+
+  // Re-sort final results
+  return processedMatches.sort((a, b) => b.matchScore - a.matchScore);
 }

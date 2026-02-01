@@ -1,0 +1,70 @@
+{
+  "companies": [
+    {
+      "name": "Marshall Wace",
+      "logoUrl": "src/data/MW.png"
+    },
+    {
+      "name": "IMC Trading",
+      "logoUrl": "src/data/IMC.jpeg"
+    },
+    {
+      "name": "Hudson River Trading",
+      "logoUrl": "src/data/HRT.png"
+    },
+    {
+      "name": "Jump Trading",
+      "logoUrl": "src/data/JT.png"
+    },
+    {
+      "name": "G-Research",
+      "logoUrl": "src/data/GR.jpeg"
+    },
+    {
+      "name": "Balyasny Asset Management",
+      "logoUrl": "src/data/B.svg"
+    },
+    {
+      "name": "Optiver",
+      "logoUrl": "src/data/Opt.png"
+    },
+    {
+      "name": "Citadel",
+      "logoUrl": "src/data/Citadel.png"
+    },
+    {
+      "name": "Wintermute",
+      "logoUrl": "src/data/WM.jpeg"
+    },
+    {
+      "name": "Qube Research & Technologies (QRT)",
+      "logoUrl": "src/data/QRT.svg"
+    },
+    {
+      "name": "JetBrains",
+      "logoUrl": "src/data/JB.png"
+    },
+    {
+      "name": "Bending Spoons",
+      "logoUrl": "src/data/BS.png"
+    },
+    {
+      "name": "Anthropic",
+      "logoUrl": "src/data/Anthr.svg"
+    },
+    {
+      "name": "GoodNotes",
+      "logoUrl": "src/data/GN.jpg"
+    },
+    {
+      "name": "Palmify",
+      "careersUrl": "src/data/Palm.png"
+    }
+  ],
+  "notes": {
+    "brandfetchCdn": "https://cdn.brandfetch.io/{brandId}/w/{width}/h/{height}/theme/{light|dark}/logo.png",
+    "brandfetchAsset": "https://asset.brandfetch.io/{brandId}/{assetId}.{svg|png}",
+    "usage": "logoUrl contains SVG where available, logoUrlAlt contains PNG fallback",
+    "lastUpdated": "2026-02-01"
+  }
+}

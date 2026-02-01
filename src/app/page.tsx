@@ -2,7 +2,7 @@
 
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState, useEffect, useRef } from 'react';
-import { CompanyMatch } from '@/types';
+import { CompanyMatch, SynthesizedPortfolio, GitHubAnalysis, Company } from '@/types';
 import Image from 'next/image';
 import { generatePortfolioPDF } from '@/lib/pdf';
 import ReactMarkdown from 'react-markdown';
@@ -29,16 +29,49 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [matches, setMatches] = useState<CompanyMatch[]>([]);
-  const [portfolio, setPortfolio] = useState<any>(null);
-  const [githubProfile, setGithubProfile] = useState<any>(null);
+  const [portfolio, setPortfolio] = useState<SynthesizedPortfolio | null>(null);
+  const [githubProfile, setGithubProfile] = useState<GitHubAnalysis | null>(null);
 
   // Preferences State
   const [preferredIndustries, setPreferredIndustries] = useState<string[]>([]);
   const [additionalContext, setAdditionalContext] = useState('');
   const [excludedIds, setExcludedIds] = useState<number[]>([]);
-  const [availableCompanies, setAvailableCompanies] = useState<any[]>([]);
+  const [availableCompanies, setAvailableCompanies] = useState<Company[]>([]);
   const [targetSalary, setTargetSalary] = useState(120000);
-  const [selectedCompany, setSelectedCompany] = useState<any>(null); // For Partner Modal
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null); // For Partner Modal
+
+  // Load state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('onboarding_state');
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        if (state.personalStatement) setPersonalStatement(state.personalStatement);
+        if (state.preferredIndustries) setPreferredIndustries(state.preferredIndustries);
+        if (state.additionalContext) setAdditionalContext(state.additionalContext);
+        if (state.excludedIds) setExcludedIds(state.excludedIds);
+        if (state.targetSalary) setTargetSalary(state.targetSalary);
+        if (state.manualUsername) setManualUsername(state.manualUsername);
+        if (state.view === 'onboarding') setView('onboarding');
+      } catch (e) {
+        console.error("Failed to load saved state", e);
+      }
+    }
+  }, []);
+
+  // Save state to localStorage on change
+  useEffect(() => {
+    const stateToSave = {
+      personalStatement,
+      preferredIndustries,
+      additionalContext,
+      excludedIds,
+      targetSalary,
+      manualUsername,
+      view
+    };
+    localStorage.setItem('onboarding_state', JSON.stringify(stateToSave));
+  }, [personalStatement, preferredIndustries, additionalContext, excludedIds, targetSalary, manualUsername, view]);
 
   // Fetch available companies
   useEffect(() => {
@@ -55,7 +88,7 @@ export default function Home() {
   // Sync GitHub Profile when session exists
   useEffect(() => {
     const fetchProfile = async () => {
-      // @ts-ignore
+      // @ts-expect-error Session type extension needed
       const username = session?.user?.username || session?.user?.name;
       if (username) {
         try {
@@ -114,7 +147,7 @@ export default function Home() {
   };
 
   const handleMatch = async () => {
-    // @ts-ignore
+    // @ts-expect-error Session type extension needed
     const username = session?.user?.username || session?.user?.name || (!session ? manualUsername : '');
     const hasGithub = !!username;
     const hasResume = !!resumeText;
@@ -176,7 +209,7 @@ export default function Home() {
         ...githubProfile,
         name: githubProfile?.name || session?.user?.name || (!session ? manualUsername : ''),
         statement: personalStatement,
-        // @ts-ignore
+        // @ts-expect-error Session type extension needed
         username: session?.user?.username || session?.user?.name || (!session ? manualUsername : '')
       };
       // Fallback if no synthesized portfolio yet
@@ -227,9 +260,17 @@ export default function Home() {
         <div className="fixed inset-0 z-[100] bg-[#0a0a0c]/95 backdrop-blur-xl flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-basely-navy/50 border border-gray-800 rounded-2xl p-10 font-mono shadow-2xl relative overflow-hidden">
             <div className="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/10 blur-[80px] rounded-full" />
-            <div className="flex items-center gap-4 mb-10 relative">
-              <div className="w-4 h-4 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.8)]"></div>
-              <h3 className="text-white font-bold tracking-[0.2em] uppercase text-sm">Loading...</h3>
+            <div className="flex items-center gap-6 mb-10 relative">
+              <div className="relative">
+                <div className="w-12 h-12 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.8)]"></div>
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <h3 className="text-white font-bold tracking-[0.2em] uppercase text-sm">Processing Match</h3>
+                <span className="text-cyan-500/50 text-[10px] font-mono animate-pulse">SYSTEM_ANALYZING...</span>
+              </div>
             </div>
             <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] mb-8">Please wait while we process your match</p>
             <div className="space-y-8 relative">
@@ -270,9 +311,16 @@ export default function Home() {
       <div className="absolute top-10 right-10 z-40">
         {session ? (
           <div className="flex items-center gap-5 bg-basely-navy/20 border border-gray-800/50 p-1.5 pr-5 rounded-full backdrop-blur-md">
-            <img src={session.user?.image || ''} alt="Profile" className="w-9 h-9 rounded-full border border-cyan-500/30" />
+            <Image
+              src={session.user?.image || ''}
+              alt="Profile"
+              width={36}
+              height={36}
+              className="rounded-full border border-cyan-500/30"
+              unoptimized
+            />
             <div className="flex flex-col">
-              <span className="text-white text-[10px] font-bold tracking-tight">@{(session.user as any).username || 'connected'}</span>
+              <span className="text-white text-[10px] font-bold tracking-tight">@{(session.user as { username?: string }).username || 'connected'}</span>
               <button onClick={() => signOut()} className="text-[9px] text-gray-500 hover:text-cyan-400 uppercase tracking-widest font-black transition-colors text-left">Disconnect</button>
             </div>
           </div>
@@ -324,7 +372,7 @@ export default function Home() {
                       className="group flex flex-col items-center gap-2 w-20 shrink-0 outline-none"
                     >
                       <div className="w-16 h-16 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center relative overflow-hidden group-hover:border-cyan-500/50 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-300">
-                        {company.logo && company.logo.startsWith('http') ? (
+                        {company.logo && (company.logo.startsWith('http') || company.logo.startsWith('/')) ? (
                           <Image
                             src={company.logo}
                             alt={company.name}
@@ -360,7 +408,7 @@ export default function Home() {
                   {/* SIDEBAR */}
                   <div className="w-full md:w-1/3 bg-black/20 border-r border-gray-800/50 p-8 flex flex-col items-center text-center overflow-y-auto">
                     <div className="w-32 h-32 rounded-3xl bg-white/5 border border-white/10 p-4 relative mb-6">
-                      {selectedCompany.logo && selectedCompany.logo.startsWith('http') ? (
+                      {selectedCompany.logo && (selectedCompany.logo.startsWith('http') || selectedCompany.logo.startsWith('/')) ? (
                         <Image src={selectedCompany.logo} alt={selectedCompany.name} fill className="object-contain p-4" />
                       ) : (
                         <span className="text-6xl flex items-center justify-center h-full">{selectedCompany.logo || '🏢'}</span>
@@ -475,10 +523,17 @@ export default function Home() {
                         <div className="space-y-2">
                           {session ? (
                             <div className="w-full bg-cyan-900/10 border border-cyan-500/30 rounded-lg p-3 flex items-center gap-3">
-                              <img src={session.user?.image || ''} alt="GH" className="w-8 h-8 rounded-full border border-cyan-500/30" />
+                              <Image
+                                src={session.user?.image || ''}
+                                alt="GH"
+                                width={32}
+                                height={32}
+                                className="rounded-full border border-cyan-500/30"
+                                unoptimized
+                              />
                               <div className="overflow-hidden">
                                 <div className="text-[10px] text-cyan-500 font-bold uppercase tracking-wider">Connected</div>
-                                <div className="text-xs text-white font-mono truncate">@{(session.user as any).username || session.user?.name}</div>
+                                <div className="text-xs text-white font-mono truncate">@{(session.user as { username?: string }).username || session.user?.name}</div>
                               </div>
                             </div>
                           ) : (
@@ -608,7 +663,7 @@ export default function Home() {
                       </div>
                       <div className="bg-black/40 border border-gray-800 rounded-lg p-2 overflow-y-auto custom-scrollbar flex-1 min-h-[80px]">
                         <div className="flex flex-wrap gap-1">
-                          {availableCompanies.map(c => (
+                          {Array.from(new Map(availableCompanies.map(c => [c.name, c])).values()).map(c => (
                             <button key={c.id} onClick={() => setExcludedIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id])} className={`text-[9px] font-mono px-2 py-1 rounded border truncate max-w-[120px] transition-all ${excludedIds.includes(c.id) ? 'bg-red-500/10 border-red-500/30 text-red-500' : 'border-gray-800 text-gray-600 hover:border-gray-600'}`}>
                               {excludedIds.includes(c.id) ? '✕ ' : '+ '}{c.name}
                             </button>
@@ -649,20 +704,20 @@ export default function Home() {
               ))}
             </div>
             <div className="mt-20 text-center">
-              <button onClick={() => setView('onboarding')} className="text-[10px] font-black font-mono text-gray-700 uppercase tracking-[0.4em] hover:text-cyan-500">// Reset_Sequence</button>
+              <button onClick={() => setView('onboarding')} className="text-[10px] font-black font-mono text-gray-700 uppercase tracking-[0.4em] hover:text-cyan-500">{'//'} Reset_Sequence</button>
             </div>
           </div>
         </section>
       )}
 
       <footer className="py-20 border-t border-gray-900/50 text-center opacity-40">
-        <p className="text-[9px] font-mono text-gray-700 uppercase tracking-[0.5em]">Basely.Connect // Neural_Alignment_v4o // 2026</p>
+        <p className="text-[9px] font-mono text-gray-700 uppercase tracking-[0.5em]">Basely.Connect {'//'} Neural_Alignment_v4o {'//'} 2026</p>
       </footer>
     </main>
   );
 }
 
-function MatchCard({ company, index }: { company: any; index: number }) {
+function MatchCard({ company, index }: { company: CompanyMatch; index: number }) {
   const [expanded, setExpanded] = useState(false);
   return (
     <div className="group bg-[#111214]/90 border border-gray-800/50 hover:border-cyan-500/30 rounded-3xl overflow-hidden transition-all duration-500 animate-slideUp" style={{ animationDelay: `${index * 150}ms` }}>
@@ -674,7 +729,7 @@ function MatchCard({ company, index }: { company: any; index: number }) {
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-10">
             <div className="flex items-center gap-6">
               <div className="w-20 h-20 rounded-2xl bg-black/40 border border-gray-800/50 flex items-center justify-center relative overflow-hidden group-hover:scale-110 transition-transform duration-500">
-                {company.logo && company.logo.startsWith('http') ? (
+                {company.logo && (company.logo.startsWith('http') || company.logo.startsWith('/')) ? (
                   <Image
                     src={company.logo}
                     alt={company.name}

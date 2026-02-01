@@ -1,0 +1,403 @@
+[
+  {
+    "id": 1,
+    "name": "Marshall Wace",
+    "logo": "/logos/MW.png",
+    "industry": "Technology",
+    "description": "Culture(close knit)",
+    "color": "#0578FE",
+    "website": "https://www.mwam.com/join-us/",
+    "languages": [
+      "Python C Cpp Java C# Rust everything"
+    ],
+    "frameworks": [
+      "Everything"
+    ],
+    "skills": [
+      "Communication empathy critical-thinking passion",
+      "N/a"
+    ],
+    "experience": "See description",
+    "contributions": "Teamwork skills",
+    "lookingFor": "Teamwork skills",
+    "compensation": "£80k - £200k + Performance Bonus (50-100%)",
+    "benefits": "- **Comparison-beating Compensation**: Top-tier base + distinct bonus structure.\n- **Health**: Fully paid medical, dental, vision.\n- **Perks**: On-site gym, catered meals (breakfast/lunch), learning allowance.\n- **Culture**: Meritocratic, flat structure, no silos.",
+    "locations": [
+      "London",
+      "New York",
+      "Hong Kong",
+      "Singapore"
+    ],
+    "roleTypes": [
+      "Fundamental Analyst",
+      "Quantitative Associate",
+      "Software Engineer",
+      "Systems Engineer"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "IMC Trading",
+    "logo": "/logos/IMC.jpeg",
+    "industry": "Technology",
+    "description": "At IMC, we look for people who want to innovate and collaborate. You aren't seen as a graduate or an intern when you join - as soon as you onboard, we see you as an IMCer. If you are someone who gets energy from challenging the status quo and not afraid of pushing boundaries - this could be a great place for you ",
+    "color": "#F68580",
+    "website": "https://careers.imc.com/",
+    "languages": [
+      "Python c++ java"
+    ],
+    "frameworks": [
+      "Pytorch",
+      "Polars"
+    ],
+    "skills": [
+      "Team Player",
+      "Communication",
+      "Drive",
+      "Reflection",
+      "Entrepreneuralship",
+      "Quantitative background"
+    ],
+    "experience": "See description",
+    "contributions": "Motivation, drive and in general, be passionate about what you do ",
+    "lookingFor": "Motivation, drive and in general, be passionate about what you do ",
+    "compensation": "£100k - £250k + Signing Bonus + Profit Share",
+    "benefits": "- **Global Mobility**: Opportunities to work in Amsterdam, Chicago, Sydney.\n- **Learning**: Continuous education budget, tech conferences.\n- **Lifestyle**: In-house bar, barista, gym memberships, team trips.\n- **Ownership**: Profit sharing for all employees.",
+    "locations": [
+      "Amsterdam",
+      "Chicago",
+      "Sydney",
+      "Mumbai",
+      "Hong Kong"
+    ],
+    "roleTypes": [
+      "Graduate Trader",
+      "Software Engineer (Java/C++)",
+      "Quantitative Researcher",
+      "FPGA Engineer"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Hudson River Trading",
+    "logo": "/logos/HRT.png",
+    "industry": "Technology",
+    "description": "Hudson River Trading is a multi-asset class quantitative trading firm that provides liquidity on global markets and directly to our clients.",
+    "color": "#5FECC8",
+    "website": "https://www.hudsonrivertrading.com/careers/",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "experience": "See description",
+    "contributions": "",
+    "lookingFor": "",
+    "compensation": "$200k - $400k+ Total Comp (New Grad)",
+    "benefits": "- **Top of Market Pay**: Extremely competitive salary and bonuses.\n- **Meals**: Breakfast, lunch, and dinner provided daily.\n- **Office**: 'Play tank' with games, private terrace, gym.\n- **Health**: Premium health insurance, 100% covered premiums.",
+    "locations": [
+      "New York",
+      "London",
+      "Singapore",
+      "Chicago",
+      "Dublin",
+      "Mumbai"
+    ],
+    "roleTypes": [
+      "Algorithm Developer",
+      "Core Developer (C++)",
+      "Hardware Engineer (FPGA)",
+      "Quantitative Researcher"
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Jump Trading",
+    "logo": "/logos/JT.png",
+    "industry": "Technology",
+    "description": "We bring together brilliant minds in math, physics, and computer science to explore the edges of what’s possible and turn breakthrough research into real-world impact in global markets.",
+    "color": "#D4B32F",
+    "website": "https://www.jumptrading.com/careers/",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "experience": "See description",
+    "contributions": "",
+    "lookingFor": "",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 5,
+    "name": "G-Research",
+    "logo": "/logos/GR.jpeg",
+    "industry": "Technology",
+    "description": "We are solving a harder problem than anyone else - projecting the future of a complex emergent system far into the future - using the most advanced tools available (deep learning). To get this right, we abide by the scientific method, test hypotheses, and ensure we have deep understanding of the problem itself",
+    "color": "#560881",
+    "website": "https://www.gresearch.com/join-us/",
+    "languages": [
+      "Python",
+      "C#"
+    ],
+    "frameworks": [
+      "Pytorch",
+      "Polars",
+      "Pandas"
+    ],
+    "skills": [
+      "Team player",
+      "\"EQ\"",
+      "deep technical understanding",
+      "action-oriented",
+      "ML understanding"
+    ],
+    "experience": "See description",
+    "contributions": "Analytical problem solving, knowing how to bridge theory to practice",
+    "lookingFor": "Analytical problem solving, knowing how to bridge theory to practice",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 6,
+    "name": "Balyasny Asset Management",
+    "logo": "/logos/B.svg",
+    "industry": "Technology",
+    "description": "Top returns",
+    "color": "#C59D4A",
+    "website": "https://www.bamfunds.com/careers",
+    "languages": [
+      "Python java c++"
+    ],
+    "frameworks": [
+      "Pytorch"
+    ],
+    "skills": [
+      "Research",
+      "analysis",
+      "collaboration",
+      "Maths"
+    ],
+    "experience": "See description",
+    "contributions": "Morals",
+    "lookingFor": "Morals",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 7,
+    "name": "Optiver",
+    "logo": "/logos/Opt.png",
+    "industry": "Technology",
+    "description": "Collaborative culture, transparency",
+    "color": "#BF37AD",
+    "website": "https://optiver.com/working-at-optiver/",
+    "languages": [
+      "C++",
+      "C",
+      "Python",
+      "C#"
+    ],
+    "frameworks": [
+      "Any"
+    ],
+    "skills": [
+      "Strong ownership",
+      "collaboration",
+      "growth mindset",
+      "driven",
+      "Strong design principles (simple is better!)"
+    ],
+    "experience": "See description",
+    "contributions": "",
+    "lookingFor": "",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 8,
+    "name": "Citadel",
+    "logo": "/logos/Citadel.png",
+    "industry": "Technology",
+    "description": "If you're ready to explore a career here, we're ready to hear from you. Find a role that helps you follow your passions and apply your skills.",
+    "color": "#FE9DB8",
+    "website": "https://www.citadel.com/careers/",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "experience": "See description",
+    "contributions": "",
+    "lookingFor": "",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 9,
+    "name": "Wintermute",
+    "logo": "/logos/WM.jpeg",
+    "industry": "Technology",
+    "description": "The page you were looking for either does not exist or may have been movedPlease see if below links help you find what you are looking forHome pageWho we serveContact us...",
+    "color": "#EE5A7E",
+    "website": "https://www.wintermute.com/careers/",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "experience": "See description",
+    "contributions": "",
+    "lookingFor": "",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 10,
+    "name": "Qube Research & Technologies (QRT)",
+    "logo": "/logos/QRT.svg",
+    "industry": "Technology",
+    "description": "Flat structure, early careers hiring, lots of events and socials",
+    "color": "#30922E",
+    "website": "https://www.qube-rt.com/careers/",
+    "languages": [
+      "C sharp",
+      "c++",
+      "python"
+    ],
+    "frameworks": [
+      "Not sure"
+    ],
+    "skills": [
+      "Collaboration",
+      "communication",
+      "integrity",
+      "proactivity",
+      "out of the box thinking",
+      "Kotlin"
+    ],
+    "experience": "See description",
+    "contributions": "Soft skills is key, leadership ability, passion",
+    "lookingFor": "Soft skills is key, leadership ability, passion",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 11,
+    "name": "JetBrains",
+    "logo": "/logos/JB.png",
+    "industry": "Technology",
+    "description": "How to Apply: If you find a role that fits your background and aspirations, tell us about yourself in your application.",
+    "color": "#05A416",
+    "website": "https://www.jetbrains.com/careers/",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "experience": "See description",
+    "contributions": "",
+    "lookingFor": "",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 12,
+    "name": "Bending Spoons",
+    "logo": "/logos/BS.png",
+    "industry": "Technology",
+    "description": "We give employees (interns included) a chance to have a real impact on the company from day one. It really doesn't matter how much experience you have or what your background is. A good idea is a good idea, no matter how long you've been in the company. ",
+    "color": "#72A3B9",
+    "website": "https://bendingspoons.com/careers/",
+    "languages": [],
+    "frameworks": [],
+    "skills": [
+      "Proactiveness",
+      "drive",
+      "motivation",
+      "a strong sense of ownership.",
+      "We don't really look for specific technical skills."
+    ],
+    "experience": "See description",
+    "contributions": "A whole lot of passion for what you do! ",
+    "lookingFor": "A whole lot of passion for what you do! ",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 13,
+    "name": "Anthropic",
+    "logo": "/logos/Anthr.svg",
+    "industry": "Technology",
+    "description": "Anthropic is an AI safety and research company that's working to build reliable, interpretable, and steerable AI systems.",
+    "color": "#66EF4C",
+    "website": "https://www.anthropic.com/careers/",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "experience": "See description",
+    "contributions": "",
+    "lookingFor": "",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 14,
+    "name": "Goodnotes",
+    "logo": "/logos/GN.jpg",
+    "industry": "Technology",
+    "description": "Discover Goodnotes, the AI note-taking app loved by millions around the world.",
+    "color": "#57DC04",
+    "website": "https://www.goodnotes.com/careers/",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "experience": "See description",
+    "contributions": "",
+    "lookingFor": "",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  },
+  {
+    "id": 15,
+    "name": "Palmify",
+    "logo": "/logos/Palm.png",
+    "industry": "Technology",
+    "description": "Student led startup, not office rats",
+    "color": "#9DA66A",
+    "website": "",
+    "languages": [
+      "Typescript"
+    ],
+    "frameworks": [
+      "Neo4j",
+      "next.js"
+    ],
+    "skills": [
+      "Resilient",
+      "fast",
+      "respectful",
+      "Cybersecurity"
+    ],
+    "experience": "See description",
+    "contributions": "N/a",
+    "lookingFor": "N/a",
+    "compensation": "",
+    "benefits": "",
+    "locations": [],
+    "roleTypes": []
+  }
+]

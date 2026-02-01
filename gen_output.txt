@@ -1,0 +1,12 @@
+Starting DB Generation...
+SyntaxError: Unexpected token 's', ..."logoUrl": src/data/M"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at main (C:\Users\natha\Documents\Basely\connect\scripts\generate-db.ts:98:27)
+    at <anonymous> (C:\Users\natha\Documents\Basely\connect\scripts\generate-db.ts:230:1)
+    at Object.<anonymous> (C:\Users\natha\Documents\Basely\connect\scripts\generate-db.ts:230:27)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Object.transformer (C:\Users\natha\Documents\Basely\connect\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at cjsLoader (node:internal/modules/esm/translators:298:15)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:240:7)

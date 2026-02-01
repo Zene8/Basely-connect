@@ -33,6 +33,31 @@ interface LogoJson {
   companies: LogoItem[];
 }
 
+interface ExcelRow {
+  'Name of Company'?: string;
+  'Langauges(JS, Python, C etc)'?: string;
+  'Frameworks and Libraries (React, Pytorch)'?: string;
+  'Personal Qualities (e.g. time management, leadership, team player, research). Seperate with comma + space'?: string;
+  'Any other technical skills?'?: string;
+  'What seperates you from other companies here?'?: string;
+  'Anything else you look for in canidates?'?: string;
+}
+
+interface CompanyData {
+  name: string;
+  website: string;
+  description?: string;
+  lookingFor?: string;
+  languages: string[];
+  frameworks: string[];
+  skills: string[];
+  source: 'excel' | 'json' | 'both';
+  compensation?: string;
+  benefits?: string;
+  locations?: string[];
+  roleTypes?: string[];
+}
+
 // Helper to clean string arrays from Excel
 const cleanArray = (str: string | undefined): string[] => {
   if (!str) return [];
@@ -55,13 +80,13 @@ async function main() {
   console.log(`Start seeding...`)
 
   // 1. Load Excel Data
-  let excelRows: any[] = [];
+  let excelRows: ExcelRow[] = [];
   try {
     const excelPath = path.join(process.cwd(), 'Sponsor Skill Interest Survey (Responses).xlsx');
     if (fs.existsSync(excelPath)) {
       const workbook = XLSX.readFile(excelPath);
       const sheetName = workbook.SheetNames[0];
-      excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      excelRows = XLSX.utils.sheet_to_json<ExcelRow>(workbook.Sheets[sheetName]);
       console.log(`Loaded ${excelRows.length} rows from Excel.`);
     } else {
       console.warn(`Excel file not found at ${excelPath}`);
@@ -87,7 +112,7 @@ async function main() {
   }
 
   // 2b. Load Logo JSON
-  let logoMap = new Map<string, string>();
+  const logoMap = new Map<string, string>();
   try {
     const logoPath = path.join(process.cwd(), 'src', 'data', 'logo.json');
     if (fs.existsSync(logoPath)) {
@@ -108,9 +133,7 @@ async function main() {
 
   // 3. Merge Data
   // We want to create a unified map of companies by normalized name
-  const companyMap = new Map<string, any>();
-
-
+  const companyMap = new Map<string, CompanyData>();
 
   // Process Excel first (source of structured skills)
   for (const row of excelRows) {
@@ -161,17 +184,16 @@ async function main() {
   // Process JSON (source of URLs and long descriptions)
   for (const item of jsonData) {
     const key = normalize(item.name);
-    const existing = companyMap.get(key) || {};
+    const existing = companyMap.get(key) || {} as Partial<CompanyData>;
 
     // If existing (from Excel), merge. If not, create new.
     // We prefer JSON website/url.
     // We prefer JSON description if Excel description is missing/short, or append? 
     // Let's use JSON description if Excel is missing.
 
-    const merged = {
-      ...existing,
+    const merged: CompanyData = {
       name: existing.name || item.name, // Excel name preferred if exists, else JSON
-      website: item.url || existing.website,
+      website: item.url || existing.website || '',
       description: existing.description || item.description || item.mainPageContent?.slice(0, 200) + '...',
       // Keep lists from Excel if they exist, else empty (JSON doesn't have them mapped easily)
       languages: existing.languages || [],
@@ -195,7 +217,7 @@ async function main() {
   // Clear table
   await prisma.company.deleteMany({});
 
-  for (const [_key, data] of companyMap) {
+  for (const data of companyMap.values()) {
     // Basic validation
     if (!data.name) continue;
 
@@ -207,7 +229,7 @@ async function main() {
     if (!logoUrl) {
       // Fallback logic or '🏢' if strictly no clearbit wanted?
       // Let's keep the URL object logic but usually utilize logoMap first.
-      const urlObj = data.website ? new URL(data.website) : null;
+
       // If we want to strictly follow "only use logo.json", we might fallback to emoji.
       // But keeping visual fallback for others is safer.
       // For now, let's trust logoMap is the source of truth for the ones that matter.

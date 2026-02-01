@@ -28,6 +28,7 @@ class ResumeParser {
 
       if (mimeType === 'application/msword' || mimeType.includes('msword') || mimeType.includes('doc')) {
         return new Promise((resolve, reject) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           officeParser.parseOffice(buffer, (data: any, err: any) => {
             if (err) return reject(err);
             resolve(this.cleanText(data));
@@ -40,9 +41,10 @@ class ResumeParser {
       }
 
       throw new Error(`Unsupported file type: ${mimeType}`);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Extraction failed for ${mimeType}:`, error);
-      throw new Error(`Extraction failed for ${mimeType}: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown Error';
+      throw new Error(`Extraction failed for ${mimeType}: ${message}`);
     }
   }
 
@@ -62,6 +64,7 @@ class ResumeParser {
       let lastY = -1;
       let pageText = '';
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       for (const item of (textContent.items as any[])) {
         if (lastY !== -1 && Math.abs(lastY - item.transform[5]) > 2) {
           pageText += '\n';

@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getGitHubProfile } from '@/lib/github';
-import prisma from '@/lib/prisma';
+import { getCompanies } from '@/lib/db';
+// import prisma from '@/lib/prisma'; // Deprecated
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createPortfolioAgent, recruiterMatcherAgent } from "@/lib/agents";
+import { sendMatchEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +20,7 @@ export async function POST(request: Request) {
       additionalContext
     } = await request.json();
 
-    // @ts-ignore
+    // @ts-expect-error Session type extension needed
     const token = session?.accessToken;
 
     // 1. Get GitHub Data
@@ -46,29 +48,13 @@ export async function POST(request: Request) {
       }
     );
 
-    // 3. Fetch Companies (and incorporate data from companies.json if possible)
-    const companiesRaw = await prisma.company.findMany();
-
-    // We can also use the companies.json for more detailed context if the database is lagging
-    // or doesn't have the full scraped content.
-    const formattedCompanies = companiesRaw.map(c => {
-      return {
-        ...c,
-        attributes: {
-          languages: JSON.parse(c.languages || '[]'),
-          frameworks: JSON.parse(c.frameworks || '[]'),
-          skills: JSON.parse(c.skills || '[]'),
-          experience: c.experience,
-          contributions: c.contributions
-        }
-      };
-    });
+    // 3. Fetch Companies (from local JSON DB)
+    const formattedCompanies = await getCompanies();
 
     // 4. Recruiter Agent - Orchestrated matching
     const matches = await recruiterMatcherAgent(
       portfolio,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      formattedCompanies as any,
+      formattedCompanies,
       {
         industries: preferredIndustries || [],
         optOutIds: (excludedCompanyIds || []).map(Number),
@@ -76,12 +62,28 @@ export async function POST(request: Request) {
       }
     );
 
-    // Filter to top 5 for results display
-    const topMatches = matches.slice(0, 5);
+    // 5. Store Matches and Send Email
+    const matchData = matches.map(m => ({
+      username: username || 'GUEST',
+      companyName: m.name || 'Unknown Company',
+      score: m.matchScore
+    }));
+
+    try {
+      // Upload to database (Skipped for JSON migration)
+      // await prisma.userMatch.createMany({
+      //   data: matchData
+      // });
+
+      // Send Email
+      await sendMatchEmail(username || 'GUEST', matchData);
+    } catch (dbError) {
+      console.error("Failed to store matches or send email:", dbError);
+    }
 
     return NextResponse.json({
       portfolio,
-      matches: topMatches
+      matches: matches
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
