@@ -9,10 +9,13 @@
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/api/companies/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/companies/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/generate-db.ts" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/generate-db.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/api/match/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/api/match/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/companies-db.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/companies-db.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/agents.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/agents.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/github.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/github.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/pdf.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/pdf.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib/repo-analyzer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/repo-analyzer.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -21,7 +24,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="69" />
+    <option name="cachedIndexableFilesCount" value="105" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">

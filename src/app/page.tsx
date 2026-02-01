@@ -2,6 +2,7 @@
 
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { CompanyMatch, SynthesizedPortfolio, GitHubAnalysis, Company } from '@/types';
 import Image from 'next/image';
 import { generatePortfolioPDF } from '@/lib/pdf';
@@ -85,27 +86,27 @@ export default function Home() {
       .catch(err => console.error("Failed to fetch companies:", err));
   }, []);
 
-  // Sync GitHub Profile when session exists
-  useEffect(() => {
-    const fetchProfile = async () => {
-      // @ts-expect-error Session type extension needed
-      const username = session?.user?.username || session?.user?.name;
-      if (username) {
-        try {
-          const res = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username })
-          });
-          const data = await res.json();
-          setGithubProfile(data);
-        } catch (e) {
-          console.error("Failed to fetch profile", e);
-        }
-      }
-    };
-    if (session) fetchProfile();
-  }, [session]);
+    // Sync GitHub Profile when session exists
+    useEffect(() => {
+        const fetchProfile = async () => {
+            // @ts-expect-error Session type extension needed
+            const username = session?.user?.username || session?.user?.name;
+            if (username && !githubProfile) { // Added check for githubProfile
+                try {
+                    const res = await fetch('/api/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    const data = await res.json();
+                    setGithubProfile(data);
+                } catch (e) {
+                    console.error("Failed to fetch profile", e);
+                }
+            }
+        };
+        if (session) fetchProfile();
+    }, [session, githubProfile]); // Added githubProfile to dependencies
 
   useEffect(() => {
     if (session && manualUsername) {
@@ -163,13 +164,17 @@ export default function Home() {
     setMatches([]);
     setActiveStep(1);
 
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 120000); // 2 minute global timeout
+
     try {
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 1000));
       setActiveStep(2);
 
       const res = await fetch('/api/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
         body: JSON.stringify({
           username,
           resumeText,
@@ -181,21 +186,32 @@ export default function Home() {
         })
       });
 
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || `Server Error: ${res.status}`);
+      }
+
       const data = await res.json();
 
-      await new Promise(r => setTimeout(r, 1800));
       setActiveStep(3);
 
       if (data.matches) {
         setMatches(data.matches);
         setPortfolio(data.portfolio);
         setView('results');
+      } else {
+        alert("Matching failed: Unexpected response from server.");
       }
 
-      await new Promise(r => setTimeout(r, 1000));
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      if (error.name === 'AbortError') {
+        alert("Matching timed out. The system is currently under heavy load. Please try again with less data.");
+      } else {
+        alert(`Matching failed: ${error.message || "An unexpected error occurred."}`);
+      }
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
       setActiveStep(0);
     }
@@ -709,7 +725,11 @@ export default function Home() {
       )}
 
       <footer className="py-20 border-t border-gray-900/50 text-center opacity-40">
-        <p className="text-[9px] font-mono text-gray-700 uppercase tracking-[0.5em]">Basely.Connect {'//'} Neural_Alignment_v4o {'//'} 2026</p>
+        <p className="text-[9px] font-mono text-gray-700 uppercase tracking-[0.5em] mb-4">Basely.Connect {'//'} Neural_Alignment_v4o {'//'} 2026</p>
+        <div className="flex justify-center gap-8 text-[9px] font-mono text-gray-500 uppercase tracking-widest">
+          <Link href="/terms" className="hover:text-cyan-500 transition-colors">Terms and Conditions</Link>
+          <Link href="/privacy" className="hover:text-cyan-500 transition-colors">Privacy Policy</Link>
+        </div>
       </footer>
     </main>
   );

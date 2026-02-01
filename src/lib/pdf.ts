@@ -58,6 +58,25 @@ export async function generatePortfolioPDF(portfolio: SynthesizedPortfolio, matc
   doc.text(summaryLines, margin, y);
   y += (summaryLines.length * 5) + 12;
 
+  // Experience Summary
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("CAREER HISTORY & EXPERIENCE", margin, y);
+  y += 6;
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  const cleanExp = cleanForPdf(portfolio.experienceSummary.replace(/[#*`]/g, ''));
+  const expLines = doc.splitTextToSize(cleanExp, contentWidth);
+
+  if (y + (expLines.length * 5) > pageHeight - margin) {
+    doc.addPage();
+    y = margin;
+  }
+
+  doc.text(expLines, margin, y);
+  y += (expLines.length * 5) + 12;
+
   // Technical Expertise
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
@@ -65,21 +84,47 @@ export async function generatePortfolioPDF(portfolio: SynthesizedPortfolio, matc
   y += 6;
 
   portfolio.technicalExpertise.forEach(exp => {
-    if (y > pageHeight - margin) {
-      doc.addPage();
-      y = margin;
-    }
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.text(`${cleanForPdf(exp.category)}:`, margin, y);
-
+    const categoryText = `${cleanForPdf(exp.category)}:`;
+    
     doc.setFont("helvetica", "normal");
     const skills = cleanForPdf(exp.skills.join(", "));
     const skillLines = doc.splitTextToSize(skills, contentWidth - 40); // indent skills
+    
+    // Check if both category and skills fit, otherwise move to next page
+    const blockHeight = (skillLines.length * 5) + 2;
+    if (y + blockHeight > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.text(categoryText, margin, y);
+    doc.setFont("helvetica", "normal");
     doc.text(skillLines, margin + 35, y);
-    y += (skillLines.length * 5) + 2;
+    y += blockHeight;
   });
   y += 8;
+
+  // Career Goals
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("CAREER GOALS & STRATEGIC OBJECTIVES", margin, y);
+  y += 6;
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  const cleanGoals = cleanForPdf(portfolio.careerGoals.replace(/[#*`]/g, ''));
+  const goalLines = doc.splitTextToSize(cleanGoals, contentWidth);
+
+  if (y + (goalLines.length * 5) > pageHeight - margin) {
+    doc.addPage();
+    y = margin;
+  }
+
+  doc.text(goalLines, margin, y);
+  y += (goalLines.length * 5) + 12;
 
   // Project Highlights & Evidence
   doc.setFontSize(12);
@@ -159,7 +204,16 @@ export async function generatePortfolioPDF(portfolio: SynthesizedPortfolio, matc
     const reasonLines = doc.splitTextToSize(cleanReason, contentWidth);
 
     // Recalculate rect height based on text
-    const blockHeight = (reasonLines.length * 4) + 20;
+    const blockHeight = (reasonLines.length * 5) + 25; // Increased buffer
+    
+    // Check if redrawn rect fits on current page, if not, move to next page
+    if (y + blockHeight > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
+
+    doc.setFillColor(248, 250, 252); // Slate-50
+    doc.setDrawColor(226, 232, 240); // Slate-200
     doc.rect(margin - 2, y - 5, contentWidth + 4, blockHeight, 'FD'); // Redraw rect correct size
 
     // Redraw title over rect
