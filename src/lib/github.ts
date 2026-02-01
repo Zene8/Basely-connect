@@ -42,6 +42,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
     const repoType = (accessToken && user.login.toLowerCase() === username.toLowerCase()) ? "all" : "owner";
 
     // Fetch up to 5 pages (500 repos max) to get a "deep" view
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let allRepos: any[] = [];
     if (repoType === "all") {
       // Authenticated user can use listForAuthenticatedUser to get private repos correctly
@@ -122,7 +123,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
     const enrichedRepos = await Promise.all(repos.slice(0, 25).map(async (r) => {
       let collaborators: string[] = [];
       let repoLanguages: Record<string, number> = {};
-      let frameworks: string[] = [];
+      const frameworks: string[] = [];
 
       try {
         // Only fetch collaborators if user is owner/admin
@@ -134,7 +135,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
           });
           collaborators = collabs.map(c => c.login);
         }
-      } catch (e) {
+      } catch {
         // Might fail if token doesn't have enough scope or other reasons
         console.warn(`Failed to fetch collaborators for ${r.name}`);
       }
@@ -145,7 +146,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
           repo: r.name
         });
         repoLanguages = langs;
-      } catch (e) {
+      } catch {
         console.warn(`Failed to fetch languages for ${r.name}`);
       }
 
@@ -161,7 +162,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
 
           if (Array.isArray(contents)) {
             const filenames = contents.map(f => f.name);
-            
+
             // Basic framework detection by filename
             if (filenames.includes('package.json')) frameworks.push('Node.js');
             if (filenames.includes('next.config.js') || filenames.includes('next.config.mjs')) frameworks.push('Next.js');
@@ -172,7 +173,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
             if (filenames.includes('go.mod')) frameworks.push('Go');
             if (filenames.includes('Cargo.toml')) frameworks.push('Rust');
             if (filenames.includes('docker-compose.yml') || filenames.includes('Dockerfile')) frameworks.push('Docker');
-            
+
             // Deep scan package.json if it exists
             if (filenames.includes('package.json')) {
               try {
@@ -182,27 +183,27 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
                   path: "package.json",
                   headers: { accept: "application/vnd.github.raw+json" }
                 });
-                
+
                 const pkg = JSON.parse(pkgData as unknown as string);
                 const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
-                
+
                 const majorLibs = [
-                  'react', 'vue', 'angular', 'svelte', 'express', 'prisma', 'sequelize', 
-                  'mongoose', 'redux', 'mobx', 'jest', 'cypress', 'vite', 'webpack', 
+                  'react', 'vue', 'angular', 'svelte', 'express', 'prisma', 'sequelize',
+                  'mongoose', 'redux', 'mobx', 'jest', 'cypress', 'vite', 'webpack',
                   'firebase', 'supabase', 'trpc', 'query', 'graphql', 'apollo'
                 ];
-                
+
                 majorLibs.forEach(lib => {
                   if (allDeps[lib] || Object.keys(allDeps).some(k => k.includes(lib))) {
                     frameworks.push(lib.charAt(0).toUpperCase() + lib.slice(1));
                   }
                 });
-              } catch (e) {
+              } catch {
                 // package.json might be missing or invalid
               }
             }
           }
-        } catch (e) {
+        } catch {
           // Silent fail for content fetch - assume empty or inaccessible
         }
       }

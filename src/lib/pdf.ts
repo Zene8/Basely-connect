@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import { SynthesizedPortfolio } from "@/types";
+import { SynthesizedPortfolio, CompanyMatch } from "@/types";
 
 // Helper to ASCII-fy text for standard PDF fonts
 function cleanForPdf(text: string): string {
@@ -16,7 +16,7 @@ function cleanForPdf(text: string): string {
     });
 }
 
-export async function generatePortfolioPDF(portfolio: SynthesizedPortfolio, matches: any[]) {
+export async function generatePortfolioPDF(portfolio: SynthesizedPortfolio, matches: CompanyMatch[]) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -24,7 +24,6 @@ export async function generatePortfolioPDF(portfolio: SynthesizedPortfolio, matc
   const contentWidth = pageWidth - (margin * 2);
 
   // Colors
-  const primary = "#06b6d4"; // Cyan-500 equivalent
   const dark = "#010102";
   const gray = "#52525b";
 
@@ -133,7 +132,7 @@ export async function generatePortfolioPDF(portfolio: SynthesizedPortfolio, matc
   doc.text("TOP STRATEGIC COMPANY MATCHES", margin, y);
   y += 10;
 
-  matches.slice(0, 3).forEach((match, i) => {
+  matches.slice(0, 3).forEach((match) => {
     // Check space for match block (approx 50-60 units?)
     if (y > pageHeight - 50) {
       doc.addPage();
@@ -155,7 +154,8 @@ export async function generatePortfolioPDF(portfolio: SynthesizedPortfolio, matc
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    const cleanReason = cleanForPdf(match.matchReason.replace(/[#*`]/g, '')).replace(/\n/g, ' ');
+    const reasonText = match.matchReason || match.description || "Strong match based on portfolio analysis.";
+    const cleanReason = cleanForPdf(reasonText.replace(/[#*`]/g, '')).replace(/\n/g, ' ');
     const reasonLines = doc.splitTextToSize(cleanReason, contentWidth);
 
     // Recalculate rect height based on text
@@ -181,7 +181,7 @@ export async function generatePortfolioPDF(portfolio: SynthesizedPortfolio, matc
   });
 
   // Footer
-  const pageCount = (doc as any).internal.getNumberOfPages();
+  const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);

@@ -14,8 +14,9 @@ export async function POST(req: Request) {
         const text = await parseResume(buffer, file.type);
 
         return NextResponse.json({ text });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Ingest Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const message = error instanceof Error ? error.message : 'Unknown Error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

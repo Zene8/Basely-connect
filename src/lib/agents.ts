@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { SynthesizedPortfolio, UserPreferences, AgentMatchResult, Company } from '@/types';
+import { SynthesizedPortfolio, UserPreferences, AgentMatchResult, Company, GitHubAnalysis } from '@/types';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -11,7 +11,7 @@ const openai = new OpenAI({
  */
 export async function createPortfolioAgent(
   userData: {
-    github: any;
+    github: GitHubAnalysis | null;
     resume?: string;
     linkedin?: string;
     statement?: string;
@@ -258,7 +258,20 @@ export async function recruiterMatcherAgent(
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     const jsonString = jsonMatch ? jsonMatch[0] : content;
 
-    const parsed = JSON.parse(jsonString) as { evaluations: any[] };
+    const parsed = JSON.parse(jsonString) as {
+      evaluations: {
+        companyId: number;
+        thought: string;
+        score: number;
+        summary: string;
+        strengths: string[];
+        alignment: {
+          technical: number;
+          cultural: number;
+          industry: number;
+        }
+      }[]
+    };
 
     return parsed.evaluations.map(evaluation => {
       const company = filteredCompanies.find(c => c.id === evaluation.companyId);

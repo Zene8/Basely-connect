@@ -1,0 +1,43 @@
+
+> connect@0.1.0 lint
+> eslint
+
+
+C:\Users\natha\Documents\Basely\connect\src\app\api\ingest\resume\route.ts
+  17:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\natha\Documents\Basely\connect\src\app\page.tsx
+  672:167  error  Comments inside children section of tag should be placed inside braces  react/jsx-no-comment-textnodes
+
+C:\Users\natha\Documents\Basely\connect\src\lib\agents.ts
+   14:13  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  261:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\natha\Documents\Basely\connect\src\lib\github.ts
+  138:16  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  149:16  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\natha\Documents\Basely\connect\src\lib\parse-resume.ts
+  31:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\natha\Documents\Basely\connect\src\lib\pdf.ts
+   19:86  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+   27:9   warning  'primary' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  136:39  warning  'i' is defined but never used                 @typescript-eslint/no-unused-vars
+  184:29  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+C:\Users\natha\Documents\Basely\connect\src\lib\repo-analyzer.ts
+    8:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   72:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\natha\Documents\Basely\connect\src\types\index.ts
+  76:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  77:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 20 problems (16 errors, 4 warnings)
+

@@ -1,11 +1,11 @@
 import OpenAI from 'openai';
-import { RepoSummary } from '@/types';
+import { RepoSummary, EnrichedRepo } from '@/types';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function summarizeRepoBatch(repos: any[]): Promise<RepoSummary[]> {
+export async function summarizeRepoBatch(repos: EnrichedRepo[]): Promise<RepoSummary[]> {
   if (repos.length === 0) return [];
 
   const prompt = `
@@ -59,7 +59,7 @@ export async function summarizeRepoBatch(repos: any[]): Promise<RepoSummary[]> {
 
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response from OpenAI");
-    
+
     // Aggressively clean markdown or non-JSON artifacts
     let jsonString = content.trim();
     if (jsonString.startsWith('```json')) {
@@ -67,10 +67,11 @@ export async function summarizeRepoBatch(repos: any[]): Promise<RepoSummary[]> {
     } else if (jsonString.startsWith('```')) {
       jsonString = jsonString.replace(/^```/, '').replace(/```$/, '').trim();
     }
-    
+
     const parsed = JSON.parse(jsonString);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let summaries: any[] = [];
-    
+
     if (Array.isArray(parsed)) {
       summaries = parsed;
     } else if (parsed.repos && Array.isArray(parsed.repos)) {
@@ -126,16 +127,16 @@ export async function summarizeRepoBatch(repos: any[]): Promise<RepoSummary[]> {
   }
 }
 
-export async function analyzeAllRepos(enrichedRepos: any[]): Promise<RepoSummary[]> {
+export async function analyzeAllRepos(enrichedRepos: EnrichedRepo[]): Promise<RepoSummary[]> {
   const batchSize = 5;
   const batches = [];
-  
+
   for (let i = 0; i < enrichedRepos.length; i += batchSize) {
     batches.push(enrichedRepos.slice(i, i + batchSize));
   }
 
   // Process batches in parallel
   const summaryResults = await Promise.all(batches.map(batch => summarizeRepoBatch(batch)));
-  
+
   return summaryResults.flat();
 }

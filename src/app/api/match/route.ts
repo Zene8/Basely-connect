@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       additionalContext
     } = await request.json();
 
-    // @ts-ignore
+    // @ts-expect-error Session type extension needed
     const token = session?.accessToken;
 
     // 1. Get GitHub Data
@@ -76,12 +76,9 @@ export async function POST(request: Request) {
       }
     );
 
-    // Filter to top 5 for results display
-    const topMatches = matches.slice(0, 5);
-
     return NextResponse.json({
       portfolio,
-      matches: topMatches
+      matches: matches
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
