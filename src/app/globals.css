@@ -5,9 +5,9 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #020203;
-  --bg-secondary: #0a0a0c;
-  --bg-tertiary: #121214;
+  --bg-primary: #010102;
+  --bg-secondary: #08080a;
+  --bg-tertiary: #0f0f11;
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
@@ -17,7 +17,7 @@
   --accent-purple: #a78bfa;
   --accent-green: #34d399;
   --accent-orange: #FF6B35;
-  --border-color: #1a1a1e;
+  --border-color: #16161a;
   --font-display: 'Outfit', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
@@ -31,7 +31,7 @@ body {
 
 @keyframes float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(2deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
 }
 
 @keyframes gradient {
@@ -40,8 +40,8 @@ body {
 }
 
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(34, 211, 238, 0.4); }
+  0%, 100% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.15); }
+  50% { box-shadow: 0 0 40px rgba(34, 211, 238, 0.3); }
 }
 
 @keyframes slideUp {
@@ -53,9 +53,9 @@ body {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(rgba(34, 211, 238, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.015) 1px, transparent 1px);
+  background-size: 80px 80px;
   pointer-events: none;
   z-index: 0;
 }
@@ -65,44 +65,107 @@ body {
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-  filter: blur(200px);
-  opacity: 0.3;
+  filter: blur(220px);
+  opacity: 0.25;
 }
 
 .orb-1 {
-  width: 1200px;
-  height: 1200px;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.05) 0%, transparent 75%);
-  top: -200px;
-  left: -300px;
-  animation: float 30s ease-in-out infinite;
+  width: 1400px;
+  height: 1400px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.04) 0%, transparent 75%);
+  top: -300px;
+  left: -400px;
+  animation: float 40s ease-in-out infinite;
 }
 
 .orb-2 {
-  width: 1000px;
-  height: 1000px;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.04) 0%, transparent 75%);
-  bottom: -300px;
-  right: -200px;
-  animation: float 25s ease-in-out infinite reverse;
+  width: 1200px;
+  height: 1200px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.03) 0%, transparent 75%);
+  bottom: -400px;
+  right: -300px;
+  animation: float 35s ease-in-out infinite reverse;
 }
 
 .orb-3 {
-  width: 900px;
-  height: 900px;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.03) 0%, transparent 75%);
-  top: 20%;
-  right: -100px;
-  animation: float 35s ease-in-out infinite;
+  width: 1000px;
+  height: 1000px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.02) 0%, transparent 75%);
+  top: 15%;
+  right: -200px;
+  animation: float 45s ease-in-out infinite;
 }
 
 .orb-4 {
-  width: 1100px;
-  height: 1100px;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.03) 0%, transparent 75%);
-  bottom: 10%;
-  left: 10%;
+  width: 1300px;
+  height: 1300px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.02) 0%, transparent 75%);
+  bottom: 5%;
+  left: -100px;
+  animation: float 50s ease-in-out infinite reverse;
+}
+
+.orb-5 {
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.015) 0%, transparent 75%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: float 60s ease-in-out infinite;
+}
+
+/* BLOOM FILTERS */
+.bloom {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1; /* After grid stuff (z-0) but before foreground */
+  filter: blur(120px);
+  opacity: 0.15;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.4) 0%, transparent 70%);
+}
+
+.bloom-tr {
+  width: 600px;
+  height: 600px;
+  top: -100px;
+  right: -50px;
+  animation: float 25s ease-in-out infinite;
+}
+
+.bloom-lm {
+  width: 500px;
+  height: 500px;
+  top: 40%;
+  left: -100px;
+  animation: float 30s ease-in-out infinite reverse;
+}
+
+.bloom-br {
+  width: 700px;
+  height: 700px;
+  bottom: -150px;
+  right: 10%;
+  animation: float 35s ease-in-out infinite;
+}
+
+.bloom-center {
+  width: 450px;
+  height: 450px;
+  top: 60%;
+  right: 25%;
+  opacity: 0.1;
   animation: float 40s ease-in-out infinite reverse;
+}
+
+.bloom-random {
+  width: 550px;
+  height: 550px;
+  bottom: 25%;
+  left: 15%;
+  opacity: 0.12;
+  animation: float 28s ease-in-out infinite;
 }
 
 .title-gradient {

@@ -34,10 +34,10 @@ export async function POST(request: Request) {
       topLanguages: [] as string[],
       totalStars: 0,
       totalSize: 0,
-      organizations: [],
-      socialAccounts: [],
+      organizations: [] as any[],
+      socialAccounts: [] as any[],
       profileReadme: '',
-      deepTechStack: [], // API specific field
+      deepTechStack: [] as string[], // API specific field
       repos: [] as any[]
     };
 

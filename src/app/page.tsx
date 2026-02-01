@@ -178,7 +178,17 @@ export default function Home() {
       <div className="orb orb-2" />
       <div className="orb orb-3" />
       <div className="orb orb-4" />
-      {/* LOADING OVERLAY */}      {isLoading && (
+      <div className="orb orb-5" />
+
+      {/* BLOOM FILTERS */}
+      <div className="bloom bloom-tr" />
+      <div className="bloom bloom-lm" />
+      <div className="bloom bloom-br" />
+      <div className="bloom bloom-center" />
+      <div className="bloom bloom-random" />
+
+      {/* LOADING OVERLAY */}
+      {isLoading && (
         <div className="fixed inset-0 z-[100] bg-[#0a0a0c]/95 backdrop-blur-xl flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-basely-navy/50 border border-gray-800 rounded-2xl p-10 font-mono shadow-2xl relative overflow-hidden">
             <div className="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/10 blur-[80px] rounded-full" />
@@ -399,8 +409,9 @@ export default function Home() {
                       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 bg-black/20 border border-gray-800/50 rounded-lg p-3">
                         <div className="flex flex-wrap gap-1.5">
                           {[
-                            'Software Dev', 'Infra', 'AI/ML', 'Quant', 'FinTech',
-                            'Crypto', 'Gaming', 'Security', 'Cloud', 'HealthTech'
+                            'Quant Trading', 'Hedge Funds', 'AI / ML', 'Software Dev', 
+                            'FinTech', 'Crypto / Web3', 'Infrastructure', 'Cybersecurity', 
+                            'DevTools', 'Consumer Tech'
                           ].map(ind => (
                             <button key={ind} onClick={() => setPreferredIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind])} className={`px-2.5 py-1.5 rounded text-[10px] font-bold border transition-all ${preferredIndustries.includes(ind) ? 'bg-cyan-500 border-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.2)]' : 'bg-black/20 border-gray-800 text-gray-400 hover:border-gray-600 hover:text-gray-200'}`}>
                               {ind}

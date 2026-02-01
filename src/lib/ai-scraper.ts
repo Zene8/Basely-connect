@@ -27,6 +27,12 @@ export async function enhanceWithAI(
     apiKey: process.env.OPENAI_API_KEY,
   })
 
+  const rawText = scrapedData.allContent || scrapedData.mainPageContent || ''
+  const detectedLanguages = (scrapedData as unknown as { languages?: string[] }).languages || []
+  const detectedFrameworks = (scrapedData as unknown as { frameworks?: string[] }).frameworks || []
+  const detectedSkills = (scrapedData as unknown as { skills?: string[] }).skills || []
+  const detectedQualities = (scrapedData as unknown as { qualities?: string[] }).qualities || []
+
   const prompt = `
 You are analyzing a company's career page. Based on the scraped content, extract:
 
@@ -42,13 +48,13 @@ Company: ${scrapedData.name}
 URL: ${scrapedData.url}
 
 Raw text from career page:
-${scrapedData.rawText.slice(0, 8000)}
+${rawText.slice(0, 8000)}
 
 Already detected:
-- Languages: ${scrapedData.languages.join(', ')}
-- Frameworks: ${scrapedData.frameworks.join(', ')}
-- Skills: ${scrapedData.skills.join(', ')}
-- Qualities: ${scrapedData.qualities.join(', ')}
+- Languages: ${detectedLanguages.join(', ')}
+- Frameworks: ${detectedFrameworks.join(', ')}
+- Skills: ${detectedSkills.join(', ')}
+- Qualities: ${detectedQualities.join(', ')}
 
 Respond in JSON format:
 {
@@ -83,11 +89,11 @@ Respond in JSON format:
       name: scrapedData.name,
       url: scrapedData.url,
       industry: result.industry || 'Technology',
-      description: result.description || scrapedData.rawText.slice(0, 200),
-      languages: result.languages || scrapedData.languages,
-      frameworks: result.frameworks || scrapedData.frameworks,
-      skills: result.skills || scrapedData.skills,
-      qualities: result.qualities || scrapedData.qualities,
+      description: result.description || rawText.slice(0, 200),
+      languages: result.languages || detectedLanguages,
+      frameworks: result.frameworks || detectedFrameworks,
+      skills: result.skills || detectedSkills,
+      qualities: result.qualities || detectedQualities,
       lookingFor: result.lookingFor || 'See career page for details.',
     }
   } catch (error) {
@@ -97,11 +103,11 @@ Respond in JSON format:
       name: scrapedData.name,
       url: scrapedData.url,
       industry: 'Technology',
-      description: scrapedData.rawText.slice(0, 200),
-      languages: scrapedData.languages,
-      frameworks: scrapedData.frameworks,
-      skills: scrapedData.skills,
-      qualities: scrapedData.qualities,
+      description: rawText.slice(0, 200),
+      languages: detectedLanguages,
+      frameworks: detectedFrameworks,
+      skills: detectedSkills,
+      qualities: detectedQualities,
       lookingFor: 'See career page for details.',
     }
   }
