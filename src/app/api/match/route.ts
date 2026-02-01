@@ -1,139 +1,88 @@
 import { NextResponse } from 'next/server';
 import { getGitHubProfile } from '@/lib/github';
-import { generateMatchAnalysis } from '@/lib/ai';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { createPortfolioAgent, recruiterMatcherAgent } from "@/lib/agents";
 
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    const { username, resumeText, statement, excludedCompanyIds, preferredIndustries, additionalContext } = await request.json();
+    const {
+      username,
+      resumeText,
+      linkedinText,
+      statement,
+      excludedCompanyIds,
+      preferredIndustries,
+      additionalContext
+    } = await request.json();
 
-    if (!username) {
-      return NextResponse.json({ error: 'Username is required' }, { status: 400 });
-    }
-
-    // @ts-expect-error extending session type
+    // @ts-ignore
     const token = session?.accessToken;
 
-    // Default empty profile
-    let githubData = {
-      username: username,
-      name: username === 'GUEST' || username === 'GUEST_USER' ? 'Guest Candidate' : username,
-      bio: '',
-      blog: '',
-      company: '',
-      location: '',
-      email: '',
-      hireable: false,
-      publicRepos: 0,
-      followers: 0,
-      following: 0,
-      totalRepos: 0,
-      topLanguages: [] as string[],
-      totalStars: 0,
-      totalSize: 0,
-      organizations: [] as any[],
-      socialAccounts: [] as any[],
-      profileReadme: '',
-      deepTechStack: [] as string[], // API specific field
-      repos: [] as any[]
-    };
-
-    // Only scrape if it's a real username (not the guest placeholder)
+    // 1. Get GitHub Data
+    let githubData = null;
     if (username && username !== 'GUEST' && username !== 'GUEST_USER') {
       try {
-        console.log(`Attempting public scrape for: ${username}`);
         githubData = await getGitHubProfile(username, token);
       } catch (error) {
-        console.warn(`GitHub scraping failed for ${username}. Proceeding with resume only.`, error);
-        // We keep the default empty object so the flow continues
+        console.warn(`GitHub fetch failed for ${username}`, error);
       }
     }
+
+    // 2. Portfolio Creator Agent
+    const portfolio = await createPortfolioAgent(
+      {
+        github: githubData,
+        resume: resumeText,
+        linkedin: linkedinText,
+        statement: statement
+      },
+      {
+        industries: preferredIndustries || [],
+        optOutIds: (excludedCompanyIds || []).map(Number),
+        specialRequests: additionalContext || ''
+      }
+    );
+
+    // 3. Fetch Companies (and incorporate data from companies.json if possible)
     const companiesRaw = await prisma.company.findMany();
 
-    // Debug exclusion logic
-    console.log('Excluded IDs received:', excludedCompanyIds, 'Type:', typeof excludedCompanyIds?.[0]);
-    
-    // Filter Excluded Companies
-    const activeCompanies = companiesRaw.filter(c => {
-      const isExcluded = (excludedCompanyIds || []).map(Number).includes(Number(c.id));
-      if (isExcluded) console.log(`Excluding company: ${c.name} (ID: ${c.id})`);
-      return !isExcluded;
+    // We can also use the companies.json for more detailed context if the database is lagging
+    // or doesn't have the full scraped content.
+    const formattedCompanies = companiesRaw.map(c => {
+      return {
+        ...c,
+        attributes: {
+          languages: JSON.parse(c.languages || '[]'),
+          frameworks: JSON.parse(c.frameworks || '[]'),
+          skills: JSON.parse(c.skills || '[]'),
+          experience: c.experience,
+          contributions: c.contributions
+        }
+      };
     });
 
-    console.log(`Active companies count: ${activeCompanies.length} / ${companiesRaw.length}`);
-
-    // Heuristic Filter
-    const candidates = activeCompanies.map(c => {
-      const languages = JSON.parse(c.languages || '[]') as string[];
-      // Basic overlap check
-      const matchCount = languages.filter(l => githubData.topLanguages.includes(l)).length;
-      let heuristicScore = (matchCount / (languages.length || 1)) * 100;
-
-      // Boost heuristic if in preferred industry
-      if (preferredIndustries && preferredIndustries.includes(c.industry)) {
-        heuristicScore += 15;
+    // 4. Recruiter Agent - Orchestrated matching
+    const matches = await recruiterMatcherAgent(
+      portfolio,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      formattedCompanies as any,
+      {
+        industries: preferredIndustries || [],
+        optOutIds: (excludedCompanyIds || []).map(Number),
+        specialRequests: additionalContext || ''
       }
+    );
 
-      return { ...c, heuristicScore };
+    // Filter to top 5 for results display
+    const topMatches = matches.slice(0, 5);
+
+    return NextResponse.json({
+      portfolio,
+      matches: topMatches
     });
-
-    // Top 5 for AI Analysis
-    const topCandidates = candidates.sort((a, b) => b.heuristicScore - a.heuristicScore).slice(0, 5);
-
-    if (process.env.OPENAI_API_KEY) {
-      const results = await Promise.all(topCandidates.map(async (company) => {
-        const companyLangs = JSON.parse(company.languages || '[]');
-        const companySkills = JSON.parse(company.skills || '[]');
-
-        const analysis = await generateMatchAnalysis(
-          {
-            languages: githubData.topLanguages || [],
-            bio: githubData.bio || '',
-            name: githubData.name || 'Candidate',
-            company: githubData.company || '',
-            blog: githubData.blog || '',
-            location: githubData.location || '',
-            organizations: githubData.organizations || [],
-            socials: githubData.socialAccounts || [],
-            profileReadme: githubData.profileReadme || '',
-            deepTechStack: githubData.deepTechStack || [],
-            statement: statement,
-            resume: resumeText,
-            preferredIndustries: preferredIndustries,
-            additionalContext: additionalContext,
-            repos: (githubData.repos || []).map(r => ({
-              name: r.name,
-              desc: r.description,
-              lang: r.language,
-              topics: r.topics
-            }))
-          },
-          {
-            name: company.name,
-            desc: company.description,
-            requirements: {
-              langs: companyLangs,
-              skills: companySkills
-            }
-          }
-        );
-
-        return {
-          ...company,
-          matchScore: analysis.score,
-          matchReason: analysis.reasoning,
-          matchedLanguages: analysis.strengths,
-          missingSkills: analysis.weaknesses
-        };
-      }));
-
-      return NextResponse.json(results.sort((a, b) => b.matchScore - a.matchScore));
-    }
-
-    return NextResponse.json(topCandidates);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
