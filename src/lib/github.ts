@@ -35,18 +35,28 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       throw new Error(`User ${username} not found on GitHub`);
     }
 
-    // 3. Get repositories
+    // 3. Get repositories (Deep Fetch)
     // Note: 'all' type is only valid for authenticated user. 
     // For other users, we use 'owner'.
     const repoType = (accessToken && user.login.toLowerCase() === username.toLowerCase()) ? "all" : "owner";
 
-    const { data: repos } = await octokit.rest.repos.listForUser({
-      username,
-      sort: "updated",
-      per_page: 100,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      type: repoType as any
-    });
+    // Fetch up to 5 pages (500 repos max) to get a "deep" view
+    let allRepos: any[] = [];
+    for (let i = 1; i <= 5; i++) {
+      const { data: pageRepos } = await octokit.rest.repos.listForUser({
+        username,
+        sort: "pushed", // Get recently active first
+        per_page: 100,
+        page: i,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type: repoType as any
+      });
+
+      if (pageRepos.length === 0) break;
+      allRepos = allRepos.concat(pageRepos);
+    }
+
+    const repos = allRepos;
 
     // 4. Get Organizations
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

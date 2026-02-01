@@ -181,3 +181,20 @@ Contributions welcome! Please open an issue or PR.
 ---
 
 Built with ❤️ by Basely
+            <button
+              onClick={() => setShowPreview(!showPreview)}
+              className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.2em] hover:text-cyan-400 transition-colors border-b border-transparent hover:border-cyan-400/30 pb-1"
+            >
+              {showPreview ? "Hide Context" : "Preview Available Companies"}
+            </button>
+          </div>
+        </section>
+
+                {/* RIGHT: Participating Nodes (Checkbox Grid) */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest">Participating Companies (Opt-out)</label>
+                    <span className="text-[10px] font-mono text-gray-600">{availableCompanies.length - excludedIds.length} Active</span>
+                  </div>
+
+                  <div className="bg-basely-dark border border-gray-800 rounded p-4 h-[300px] overflow-y-auto custom-scrollbar grid grid-cols-1 gap-2"> {/* simple list */}

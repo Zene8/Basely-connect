@@ -18,6 +18,7 @@ model Company {
   color         String   @default("#888888")
   industry      String
   description   String
+  website       String   @default("")
   // Storing arrays as JSON strings
   languages     String
   frameworks    String

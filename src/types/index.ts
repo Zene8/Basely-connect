@@ -13,6 +13,7 @@ export interface Company {
   industry: string;
   description: string;
   color: string;
+  website?: string;
   attributes: CompanyAttributes;
 }
 
