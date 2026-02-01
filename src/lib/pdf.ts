@@ -44,7 +44,7 @@ export async function generatePortfolioPDF(userData: any, matches: any[]) {
   if (userData.statement) {
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Professional Intent", 20, y);
+    doc.text("Personal Statement", 20, y);
     y += 10;
     
     doc.setFontSize(10);
