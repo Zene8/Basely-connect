@@ -53,8 +53,17 @@ export async function POST(request: Request) {
     }
     const companiesRaw = await prisma.company.findMany();
 
+    // Debug exclusion logic
+    console.log('Excluded IDs received:', excludedCompanyIds, 'Type:', typeof excludedCompanyIds?.[0]);
+    
     // Filter Excluded Companies
-    const activeCompanies = companiesRaw.filter(c => !(excludedCompanyIds || []).includes(c.id));
+    const activeCompanies = companiesRaw.filter(c => {
+      const isExcluded = (excludedCompanyIds || []).map(Number).includes(Number(c.id));
+      if (isExcluded) console.log(`Excluding company: ${c.name} (ID: ${c.id})`);
+      return !isExcluded;
+    });
+
+    console.log(`Active companies count: ${activeCompanies.length} / ${companiesRaw.length}`);
 
     // Heuristic Filter
     const candidates = activeCompanies.map(c => {

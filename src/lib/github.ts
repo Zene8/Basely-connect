@@ -128,6 +128,7 @@ export async function getGitHubProfile(username: string, accessToken?: string) {
       organizations,
       socialAccounts,
       profileReadme,
+      deepTechStack: [],
       repos: repos.slice(0, 15).map(r => ({
         name: r.name,
         description: r.description || "",
