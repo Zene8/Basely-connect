@@ -33,6 +33,14 @@ const getOpenAI = () => {
   });
 };
 
+// Helper to clean Markdown code blocks from JSON
+const cleanJson = (text: string): string => {
+  if (!text) return "{}";
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  return jsonMatch ? jsonMatch[0] : text;
+};
+
+
 /**
  * PORTFOLIO CREATOR AGENT
  * Synthesizes multiple data sources into a cohesive professional portfolio using detailed markdown.
@@ -302,9 +310,11 @@ export async function recruiterMatcherAgent(
       timeoutPromise
     ])) as { choices: { message: { content: string | null } }[] };
 
+
+
     const raw = screenResponse.choices[0].message.content || '{"results": []}';
     console.log("Phase 1 Raw Response:", raw);
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(cleanJson(raw));
     screenedResults = parsed.results || parsed.matches || (Array.isArray(parsed) ? parsed : []);
     console.log(`Phase 1 screened ${screenedResults.length} results`);
 
@@ -393,7 +403,7 @@ export async function recruiterMatcherAgent(
       ])) as { choices: { message: { content: string | null } }[] };
 
       const midRaw = midResponse.choices[0].message.content || '{"results": []}';
-      const midParsed = JSON.parse(midRaw);
+      const midParsed = JSON.parse(cleanJson(midRaw));
       midLevelResults = midParsed.results || midParsed.matches || (Array.isArray(midParsed) ? midParsed : []);
 
       // Update screenedResults with mid-level insights

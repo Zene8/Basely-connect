@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createPortfolioAgent, recruiterMatcherAgent } from "@/lib/agents";
 import { sendMatchEmail } from '@/lib/email';
+import { AgentMatchResult } from '@/types';
 
 export async function POST(request: Request) {
   try {
@@ -52,15 +53,24 @@ export async function POST(request: Request) {
     const formattedCompanies = await getCompanies();
 
     // 4. Recruiter Agent - Orchestrated matching
-    const matches = await recruiterMatcherAgent(
-      portfolio,
-      formattedCompanies,
-      {
-        industries: preferredIndustries || [],
-        optOutIds: (excludedCompanyIds || []).map(Number),
-        specialRequests: additionalContext || ''
-      }
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let matches: any[] = [];
+    try {
+      matches = await recruiterMatcherAgent(
+        portfolio,
+        formattedCompanies,
+        {
+          industries: preferredIndustries || [],
+          optOutIds: (excludedCompanyIds || []).map(Number),
+          specialRequests: additionalContext || ''
+        }
+      );
+    } catch (matchError) {
+      console.error("Recruiter Matcher Agent Failed:", matchError);
+      // Fallback: Return top 5 companies based on keyword match or random if AI fails
+      // For now, just return empty matches to avoid crash
+      matches = [];
+    }
 
     // 5. Store Matches and Send Email
     // Only store/send if we have valid matches
